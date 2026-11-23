@@ -1,0 +1,18 @@
+{
+  "name": "@rsc-gl/gpu",
+  "version": "0.1.0",
+  "description": "Thin GPU hardware abstraction over WebGPU and WebGL2 used by the charting engine.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "@rsc-gl/source": "./src/index.ts", "default": "./dist/index.js" },
+    "./webgl2": { "types": "./dist/webgl2/index.d.ts", "@rsc-gl/source": "./src/webgl2/index.ts", "default": "./dist/webgl2/index.js" },
+    "./webgpu": { "types": "./dist/webgpu/index.d.ts", "@rsc-gl/source": "./src/webgpu/index.ts", "default": "./dist/webgpu/index.js" }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -b"
+  }
+}

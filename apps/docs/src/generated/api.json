@@ -1,0 +1,6601 @@
+{
+ "generatedAt": "2026-11-23T21:51:44.143Z",
+ "interfaces": [
+  {
+   "name": "HighlightScopeOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "highlight",
+     "optional": true,
+     "type": "HighlightScope",
+     "doc": ""
+    },
+    {
+     "name": "fade",
+     "optional": true,
+     "type": "FadeScope",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ItemIdentifier",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "Identifies a highlighted / clicked / focused item.",
+   "props": [
+    {
+     "name": "seriesId",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "dataIndex",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Margin",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "top",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "right",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "bottom",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "left",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "BaseSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "Properties shared by all series. Data can be provided in three ways: 1. `data` as an array of values aligned with the category axis `data` 2. `dataKey` reading a field from the chart `dataset` 3. long-format rows (`data` rows or chart-level `data`) with `dimension` / `metric` fields, optionally split into several series by `groupBy` (one series per distinct value, in order of first appearance)",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "id",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": "Static color (CSS color or theme token)."
+    },
+    {
+     "name": "colorField",
+     "optional": true,
+     "type": "string",
+     "doc": "Field holding a per-row CSS color (bypasses the palette)."
+    },
+    {
+     "name": "data",
+     "optional": true,
+     "type": "ReadonlyArray<number | null | Datum>",
+     "doc": ""
+    },
+    {
+     "name": "dataKey",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metric",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "groupBy",
+     "optional": true,
+     "type": "string | string[]",
+     "doc": ""
+    },
+    {
+     "name": "colors",
+     "optional": true,
+     "type": "PaletteInput",
+     "doc": "Explicit palette for the groups produced by `groupBy`."
+    },
+    {
+     "name": "xAxisId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "yAxisId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "valueFormatter",
+     "optional": true,
+     "type": "(value: number | null, context: FormatContext) => string",
+     "doc": ""
+    },
+    {
+     "name": "numberFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    },
+    {
+     "name": "highlightScope",
+     "optional": true,
+     "type": "HighlightScopeOptions",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "excludeFromInteraction",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Rows / items excluded from interaction (tooltip, highlight)."
+    },
+    {
+     "name": "animation",
+     "optional": true,
+     "type": "boolean | Partial<TransitionOptions>",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "BarSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'bar'",
+     "doc": ""
+    },
+    {
+     "name": "stack",
+     "optional": true,
+     "type": "string",
+     "doc": "Series sharing a stack id are stacked."
+    },
+    {
+     "name": "stackOffset",
+     "optional": true,
+     "type": "'none' | 'diverging' | 'expand'",
+     "doc": ""
+    },
+    {
+     "name": "layout",
+     "optional": true,
+     "type": "'vertical' | 'horizontal'",
+     "doc": "'horizontal' draws bars along the x axis."
+    },
+    {
+     "name": "borderRadius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "roundCorners",
+     "optional": true,
+     "type": "'end' | 'all'",
+     "doc": "Round only the outer end of a bar (default) or every corner."
+    },
+    {
+     "name": "borderWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "borderColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "minBarSize",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "barLabel",
+     "optional": true,
+     "type": "'value' | ((item: { value: number | null; dataIndex: number; seriesId: string }) => string | null)",
+     "doc": ""
+    },
+    {
+     "name": "barLabelPlacement",
+     "optional": true,
+     "type": "'center' | 'inside-end' | 'outside'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "LineSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'line'",
+     "doc": ""
+    },
+    {
+     "name": "curve",
+     "optional": true,
+     "type": "CurveType",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "LineWidth",
+     "doc": ""
+    },
+    {
+     "name": "area",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Fill below the line. `true` uses the line color at 30% opacity."
+    },
+    {
+     "name": "gradient",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Gradient area fill fading to transparent."
+    },
+    {
+     "name": "baseline",
+     "optional": true,
+     "type": "number | 'min' | 'max'",
+     "doc": ""
+    },
+    {
+     "name": "stack",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "showMark",
+     "optional": true,
+     "type": "boolean | 'start' | 'end' | ((p: { index: number; value: number | null }) => boolean)",
+     "doc": ""
+    },
+    {
+     "name": "markShape",
+     "optional": true,
+     "type": "SymbolShape",
+     "doc": ""
+    },
+    {
+     "name": "markSize",
+     "optional": true,
+     "type": "SymbolSize",
+     "doc": ""
+    },
+    {
+     "name": "hollowMarks",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "connectNulls",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "alternateField",
+     "optional": true,
+     "type": "string",
+     "doc": "Field with a truthy value for points drawn with the alternate dash (e.g. forecasts)."
+    },
+    {
+     "name": "alternateLineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    },
+    {
+     "name": "sampling",
+     "optional": true,
+     "type": "'none' | 'auto' | 'lttb' | 'minmax' | 'm4'",
+     "doc": "Downsampling for dense series ('auto' = min-max above 2 points per pixel)."
+    },
+    {
+     "name": "metricRanges",
+     "optional": true,
+     "type": "MetricRangeOptions[]",
+     "doc": "Bands between two fields drawn around the line (confidence intervals, targets)."
+    },
+    {
+     "name": "lineTypeField",
+     "optional": true,
+     "type": "string",
+     "doc": "Field whose distinct values select a dash pattern from `lineTypes` (one per group)."
+    },
+    {
+     "name": "lineTypes",
+     "optional": true,
+     "type": "LineType[]",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "MetricRangeOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "metricStart",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metricEnd",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    },
+    {
+     "name": "rangeOpacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "displayOnHover",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Only show the range while its series is highlighted."
+    }
+   ]
+  },
+  {
+   "name": "AreaSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'area'",
+     "doc": ""
+    },
+    {
+     "name": "curve",
+     "optional": true,
+     "type": "CurveType",
+     "doc": ""
+    },
+    {
+     "name": "stack",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metricStart",
+     "optional": true,
+     "type": "string",
+     "doc": "Floating band between two metrics (disables stacking)."
+    },
+    {
+     "name": "metricEnd",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "baseline",
+     "optional": true,
+     "type": "number | 'min' | 'max'",
+     "doc": ""
+    },
+    {
+     "name": "showLine",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "LineWidth",
+     "doc": ""
+    },
+    {
+     "name": "gradient",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "sampling",
+     "optional": true,
+     "type": "'none' | 'auto' | 'lttb' | 'minmax' | 'm4'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ScatterPoint",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "x",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "y",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "id",
+     "optional": true,
+     "type": "string | number",
+     "doc": ""
+    },
+    {
+     "name": "size",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "colorValue",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "[key: string]",
+     "optional": false,
+     "type": "unknown",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ScatterSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'scatter'",
+     "doc": ""
+    },
+    {
+     "name": "sizeField",
+     "optional": true,
+     "type": "string",
+     "doc": "Field used for the bubble size (or `size` on point objects)."
+    },
+    {
+     "name": "sizeRange",
+     "optional": true,
+     "type": "[number, number]",
+     "doc": "[min, max] pixel diameter when sized by a field."
+    },
+    {
+     "name": "markerSize",
+     "optional": true,
+     "type": "SymbolSize",
+     "doc": ""
+    },
+    {
+     "name": "shape",
+     "optional": true,
+     "type": "SymbolShape",
+     "doc": ""
+    },
+    {
+     "name": "strokeColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "strokeWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "colorValueField",
+     "optional": true,
+     "type": "string",
+     "doc": "Continuous color by a numeric field using `colorScheme`."
+    },
+    {
+     "name": "colorScheme",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "positions",
+     "optional": true,
+     "type": "Float32Array | Float64Array",
+     "doc": "Typed array fast path: interleaved [x0, y0, x1, y1, …]. Skips per-item transitions."
+    }
+   ]
+  },
+  {
+   "name": "PieDatum",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "id",
+     "optional": true,
+     "type": "string | number",
+     "doc": ""
+    },
+    {
+     "name": "value",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "[key: string]",
+     "optional": false,
+     "type": "unknown",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "PieSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'pie'",
+     "doc": ""
+    },
+    {
+     "name": "innerRadius",
+     "optional": true,
+     "type": "number | string",
+     "doc": "Px or percentage of the available radius, e.g. '60%'."
+    },
+    {
+     "name": "outerRadius",
+     "optional": true,
+     "type": "number | string",
+     "doc": ""
+    },
+    {
+     "name": "startAngle",
+     "optional": true,
+     "type": "number",
+     "doc": "Degrees."
+    },
+    {
+     "name": "endAngle",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "paddingAngle",
+     "optional": true,
+     "type": "number",
+     "doc": "Degrees between slices."
+    },
+    {
+     "name": "cornerRadius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "cx",
+     "optional": true,
+     "type": "number | string",
+     "doc": ""
+    },
+    {
+     "name": "cy",
+     "optional": true,
+     "type": "number | string",
+     "doc": ""
+    },
+    {
+     "name": "sortingValues",
+     "optional": true,
+     "type": "'none' | 'asc' | 'desc'",
+     "doc": ""
+    },
+    {
+     "name": "arcLabel",
+     "optional": true,
+     "type": "'value' | 'formattedValue' | 'label' | 'percent' | ((item: PieDatum & { percent: number }) => string)",
+     "doc": ""
+    },
+    {
+     "name": "arcLabelMinAngle",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "centerLabel",
+     "optional": true,
+     "type": "string | ((total: number) => string)",
+     "doc": "Content drawn in the center of a donut."
+    },
+    {
+     "name": "centerSubLabel",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "hoverOffset",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AxisOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "id",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "scaleType",
+     "optional": true,
+     "type": "ScaleType",
+     "doc": ""
+    },
+    {
+     "name": "data",
+     "optional": true,
+     "type": "ReadonlyArray<DomainValue>",
+     "doc": "Categories / values for ordinal axes."
+    },
+    {
+     "name": "dataKey",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "position",
+     "optional": true,
+     "type": "AxisPosition",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "min",
+     "optional": true,
+     "type": "number | Date",
+     "doc": ""
+    },
+    {
+     "name": "max",
+     "optional": true,
+     "type": "number | Date",
+     "doc": ""
+    },
+    {
+     "name": "reverse",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "domainLimit",
+     "optional": true,
+     "type": "DomainLimit",
+     "doc": ""
+    },
+    {
+     "name": "tickNumber",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "tickValues",
+     "optional": true,
+     "type": "ReadonlyArray<DomainValue>",
+     "doc": "Explicit tick values."
+    },
+    {
+     "name": "tickSize",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "tickLabelAngle",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "disableLine",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "disableTicks",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "hideTickLabels",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "grid",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "baseline",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Draws a highlighted 0 line."
+    },
+    {
+     "name": "valueFormatter",
+     "optional": true,
+     "type": "(value: DomainValue, context: FormatContext) => string",
+     "doc": ""
+    },
+    {
+     "name": "numberFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    },
+    {
+     "name": "labelFormat",
+     "optional": true,
+     "type": "'linear' | 'percentage' | 'duration' | 'time'",
+     "doc": ""
+    },
+    {
+     "name": "granularity",
+     "optional": true,
+     "type": "TimeGranularity",
+     "doc": ""
+    },
+    {
+     "name": "categoryGapRatio",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "barGapRatio",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "labelLimit",
+     "optional": true,
+     "type": "number",
+     "doc": "Max label width in px before truncation (ordinal axes)."
+    },
+    {
+     "name": "zoom",
+     "optional": true,
+     "type": "boolean | { minSpan?: number; maxSpan?: number; slider?: boolean }",
+     "doc": "Enables wheel / drag zoom on this axis (continuous axes)."
+    },
+    {
+     "name": "groups",
+     "optional": true,
+     "type": "AxisGroupLevel[]",
+     "doc": "Grouped (multi-level) category labels. Each level maps a category to its group; consecutive categories with the same group share one bracketed label. Levels are drawn outward from the axis (ordinal axes only)."
+    },
+    {
+     "name": "thumbnails",
+     "optional": true,
+     "type": "AxisThumbnailOptions",
+     "doc": "Images drawn next to each tick (e.g. logos, avatars, flags)."
+    },
+    {
+     "name": "annotations",
+     "optional": true,
+     "type": "AxisAnnotation[]",
+     "doc": "Event markers and spans drawn in a lane alongside the axis."
+    },
+    {
+     "name": "annotationFormat",
+     "optional": true,
+     "type": "'span' | 'summary'",
+     "doc": "`span` draws every annotation; `summary` collapses them into one badge."
+    }
+   ]
+  },
+  {
+   "name": "AxisGroupLevel",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "getValue",
+     "optional": false,
+     "type": "(value: DomainValue, index: number) => string | number | null | undefined",
+     "doc": "Group key for a category."
+    },
+    {
+     "name": "format",
+     "optional": true,
+     "type": "(group: string) => string",
+     "doc": "Optional label formatter for the group key."
+    }
+   ]
+  },
+  {
+   "name": "AxisThumbnailOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "url",
+     "optional": false,
+     "type": "(value: DomainValue, index: number) => string | undefined",
+     "doc": "Image URL for a tick value (undefined draws nothing)."
+    },
+    {
+     "name": "size",
+     "optional": true,
+     "type": "number",
+     "doc": "Box size in px. Default 24."
+    },
+    {
+     "name": "radius",
+     "optional": true,
+     "type": "number",
+     "doc": "Corner radius in px (use size / 2 for circles). Default 4."
+    },
+    {
+     "name": "hideLabel",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Hides the text label and shows only the image."
+    }
+   ]
+  },
+  {
+   "name": "AxisAnnotation",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "id",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "value",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": "Single position (draws a marker)."
+    },
+    {
+     "name": "start",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": "Span start / end (draws a bar)."
+    },
+    {
+     "name": "end",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "description",
+     "optional": true,
+     "type": "string",
+     "doc": "Longer text shown in the tooltip."
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "icon",
+     "optional": true,
+     "type": "'dot' | 'flag' | 'diamond' | 'triangle' | 'star'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "PointAnnotationOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "A labelled callout attached to a data point.",
+   "props": [
+    {
+     "name": "x",
+     "optional": false,
+     "type": "DomainValue",
+     "doc": "x value (category, number or date)."
+    },
+    {
+     "name": "y",
+     "optional": true,
+     "type": "number",
+     "doc": "y value; when omitted it is read from `seriesId` at `x`."
+    },
+    {
+     "name": "seriesId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "anchor",
+     "optional": true,
+     "type": "'top' | 'bottom' | 'left' | 'right'",
+     "doc": "Side of the point the label sits on. Default 'top'."
+    },
+    {
+     "name": "offset",
+     "optional": true,
+     "type": "number",
+     "doc": "Leader line length in px. Default 26."
+    },
+    {
+     "name": "marker",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Draws a ring around the point. Default true."
+    },
+    {
+     "name": "xAxisId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "yAxisId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ScatterPathOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "Lines connecting scatter points (trajectories, before/after pairs).",
+   "props": [
+    {
+     "name": "seriesId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "groupBy",
+     "optional": true,
+     "type": "string",
+     "doc": "Datum field that splits points into separate paths."
+    },
+    {
+     "name": "order",
+     "optional": true,
+     "type": "'data' | 'x'",
+     "doc": "Order points by x or keep data order. Default 'data'."
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "width",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ScatterLabelOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "Text labels next to scatter points, skipping labels that would overlap.",
+   "props": [
+    {
+     "name": "seriesId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "field",
+     "optional": true,
+     "type": "string",
+     "doc": "Datum field to show; defaults to the point's y value."
+    },
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'right' | 'left' | 'top' | 'bottom'",
+     "doc": ""
+    },
+    {
+     "name": "indices",
+     "optional": true,
+     "type": "number[]",
+     "doc": "Only label these data indices."
+    },
+    {
+     "name": "format",
+     "optional": true,
+     "type": "(value: unknown) => string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "LegendOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'top' | 'bottom' | 'left' | 'right'",
+     "doc": ""
+    },
+    {
+     "name": "align",
+     "optional": true,
+     "type": "'start' | 'middle' | 'end'",
+     "doc": ""
+    },
+    {
+     "name": "title",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "toggleable",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Click toggles series visibility."
+    },
+    {
+     "name": "highlight",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Hover highlights the series."
+    },
+    {
+     "name": "labels",
+     "optional": true,
+     "type": "Record<string, string>",
+     "doc": "Overrides displayed labels by series id."
+    },
+    {
+     "name": "hiddenEntries",
+     "optional": true,
+     "type": "string[]",
+     "doc": "Series ids not shown in the legend."
+    },
+    {
+     "name": "descriptions",
+     "optional": true,
+     "type": "Record<string, string>",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "TooltipContext",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "trigger",
+     "optional": false,
+     "type": "'item' | 'axis'",
+     "doc": ""
+    },
+    {
+     "name": "axisValue",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": ""
+    },
+    {
+     "name": "axisLabel",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "items",
+     "optional": false,
+     "type": "TooltipItem[]",
+     "doc": ""
+    },
+    {
+     "name": "x",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "y",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "TooltipItem",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "seriesId",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "seriesLabel",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "dataIndex",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "value",
+     "optional": false,
+     "type": "number | null",
+     "doc": ""
+    },
+    {
+     "name": "formattedValue",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "datum",
+     "optional": true,
+     "type": "Datum",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "TooltipOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "trigger",
+     "optional": true,
+     "type": "'item' | 'axis' | 'none'",
+     "doc": ""
+    },
+    {
+     "name": "anchor",
+     "optional": true,
+     "type": "'pointer' | 'mark'",
+     "doc": "Anchor at the cursor or at the mark."
+    },
+    {
+     "name": "placement",
+     "optional": true,
+     "type": "'top' | 'bottom' | 'left' | 'right'",
+     "doc": ""
+    },
+    {
+     "name": "customContent",
+     "optional": true,
+     "type": "boolean",
+     "doc": "When true the engine positions the container but leaves content to the host (e.g. React portal)."
+    },
+    {
+     "name": "render",
+     "optional": true,
+     "type": "(ctx: TooltipContext) => string | HTMLElement | null",
+     "doc": "Plain DOM rendering hook."
+    },
+    {
+     "name": "sort",
+     "optional": true,
+     "type": "'none' | 'asc' | 'desc'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ReferenceAreaOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "x1",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": "Data-space corners; omit a bound to extend to the plot edge."
+    },
+    {
+     "name": "x2",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": ""
+    },
+    {
+     "name": "y1",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": ""
+    },
+    {
+     "name": "y2",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": ""
+    },
+    {
+     "name": "xAxisId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "yAxisId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "layer",
+     "optional": true,
+     "type": "'back' | 'front'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "TrendlineOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "seriesId",
+     "optional": true,
+     "type": "string",
+     "doc": "Series the trendline is computed from (default: every visible cartesian series)."
+    },
+    {
+     "name": "method",
+     "optional": true,
+     "type": "TrendlineMethod",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "extend",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Extend the line to the full x domain (regressions only)."
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string | ((value: number) => string)",
+     "doc": "Label drawn at the end of the line; receives the last trend value."
+    }
+   ]
+  },
+  {
+   "name": "ZoomState",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "axisId",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "start",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "end",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ReferenceLineOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "x",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": ""
+    },
+    {
+     "name": "y",
+     "optional": true,
+     "type": "DomainValue",
+     "doc": ""
+    },
+    {
+     "name": "axisId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "labelAlign",
+     "optional": true,
+     "type": "'start' | 'middle' | 'end'",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "layer",
+     "optional": true,
+     "type": "'back' | 'front'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "TitleOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "text",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "subtitle",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "align",
+     "optional": true,
+     "type": "'start' | 'middle' | 'end'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AnimationOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "extends": "Partial<TransitionOptions>",
+   "doc": "",
+   "props": [
+    {
+     "name": "enter",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Initial draw-in animation."
+    },
+    {
+     "name": "easing",
+     "optional": true,
+     "type": "EasingName",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ChartOptions",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "data",
+     "optional": true,
+     "type": "ReadonlyArray<Datum>",
+     "doc": "Long-format rows shared by series that use `dimension` / `metric`."
+    },
+    {
+     "name": "dataset",
+     "optional": true,
+     "type": "ReadonlyArray<Datum>",
+     "doc": "Wide-format rows used by `dataKey`."
+    },
+    {
+     "name": "series",
+     "optional": false,
+     "type": "SeriesOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "xAxis",
+     "optional": true,
+     "type": "AxisOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "yAxis",
+     "optional": true,
+     "type": "AxisOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "legend",
+     "optional": true,
+     "type": "LegendOptions | boolean",
+     "doc": ""
+    },
+    {
+     "name": "tooltip",
+     "optional": true,
+     "type": "TooltipOptions | boolean",
+     "doc": ""
+    },
+    {
+     "name": "grid",
+     "optional": true,
+     "type": "{ vertical?: boolean; horizontal?: boolean }",
+     "doc": ""
+    },
+    {
+     "name": "referenceLines",
+     "optional": true,
+     "type": "ReferenceLineOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "referenceAreas",
+     "optional": true,
+     "type": "ReferenceAreaOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "trendlines",
+     "optional": true,
+     "type": "TrendlineOptions[]",
+     "doc": "Regression / smoothing lines over series (requires the annotations plugin)."
+    },
+    {
+     "name": "pointAnnotations",
+     "optional": true,
+     "type": "PointAnnotationOptions[]",
+     "doc": "Labelled callouts on data points (requires the annotations plugin)."
+    },
+    {
+     "name": "scatterPaths",
+     "optional": true,
+     "type": "ScatterPathOptions[]",
+     "doc": "Paths connecting scatter points (requires the annotations plugin)."
+    },
+    {
+     "name": "scatterLabels",
+     "optional": true,
+     "type": "ScatterLabelOptions[]",
+     "doc": "Labels next to scatter points (requires the annotations plugin)."
+    },
+    {
+     "name": "onAxisAnnotationClick",
+     "optional": true,
+     "type": "(annotation: AxisAnnotation, axisId: string) => void",
+     "doc": ""
+    },
+    {
+     "name": "marquee",
+     "optional": true,
+     "type": "boolean | import('./plugins/marquee').MarqueeOptions",
+     "doc": "Drag to select. Default action zooms into the selection (double-click, Esc or the reset chip go back); `{ action: 'select' }` keeps it and reports the covered items. Loaded on demand."
+    },
+    {
+     "name": "toolbar",
+     "optional": true,
+     "type": "boolean | import('./plugins/toolbar').ToolbarOptions",
+     "doc": "Adds the toolbar plugin (zoom, downloads, print, full screen) when using hosts that read it."
+    },
+    {
+     "name": "initialZoom",
+     "optional": true,
+     "type": "ZoomState[]",
+     "doc": "Initial zoom windows (requires the zoom plugin)."
+    },
+    {
+     "name": "onZoomChange",
+     "optional": true,
+     "type": "(zoom: ZoomState[]) => void",
+     "doc": ""
+    },
+    {
+     "name": "title",
+     "optional": true,
+     "type": "string | TitleOptions",
+     "doc": ""
+    },
+    {
+     "name": "description",
+     "optional": true,
+     "type": "string",
+     "doc": "Accessible description; auto-generated when omitted."
+    },
+    {
+     "name": "colors",
+     "optional": true,
+     "type": "PaletteInput",
+     "doc": ""
+    },
+    {
+     "name": "colorScheme",
+     "optional": true,
+     "type": "ColorScheme",
+     "doc": ""
+    },
+    {
+     "name": "theme",
+     "optional": true,
+     "type": "Partial<ChartTheme>",
+     "doc": ""
+    },
+    {
+     "name": "backgroundColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "margin",
+     "optional": true,
+     "type": "Partial<Margin>",
+     "doc": ""
+    },
+    {
+     "name": "locale",
+     "optional": true,
+     "type": "string | LocaleOptions",
+     "doc": ""
+    },
+    {
+     "name": "animation",
+     "optional": true,
+     "type": "boolean | AnimationOptions",
+     "doc": ""
+    },
+    {
+     "name": "hiddenSeries",
+     "optional": true,
+     "type": "string[]",
+     "doc": "Controlled hidden series ids."
+    },
+    {
+     "name": "defaultHiddenSeries",
+     "optional": true,
+     "type": "string[]",
+     "doc": "Initial hidden series ids (uncontrolled)."
+    },
+    {
+     "name": "highlightedItem",
+     "optional": true,
+     "type": "ItemIdentifier | null",
+     "doc": "Controlled highlight. `null` clears; `undefined` leaves it uncontrolled."
+    },
+    {
+     "name": "highlightScope",
+     "optional": true,
+     "type": "HighlightScopeOptions",
+     "doc": ""
+    },
+    {
+     "name": "axisHighlight",
+     "optional": true,
+     "type": "{ x?: 'none' | 'line' | 'band'; y?: 'none' | 'line' | 'band' }",
+     "doc": ""
+    },
+    {
+     "name": "loading",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "noDataText",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "loadingText",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "keyboardNavigation",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "onItemClick",
+     "optional": true,
+     "type": "(item: ItemIdentifier & { datum?: Datum; value?: number | null }, event: PointerEvent) => void",
+     "doc": ""
+    },
+    {
+     "name": "onItemContextMenu",
+     "optional": true,
+     "type": "(item: ItemIdentifier & { datum?: Datum }, event: MouseEvent) => void",
+     "doc": ""
+    },
+    {
+     "name": "onAxisClick",
+     "optional": true,
+     "type": "(data: { axisValue: DomainValue; dataIndex: number }, event: PointerEvent) => void",
+     "doc": ""
+    },
+    {
+     "name": "onHighlightChange",
+     "optional": true,
+     "type": "(item: ItemIdentifier | null) => void",
+     "doc": ""
+    },
+    {
+     "name": "onHiddenSeriesChange",
+     "optional": true,
+     "type": "(hidden: string[]) => void",
+     "doc": ""
+    },
+    {
+     "name": "onLegendClick",
+     "optional": true,
+     "type": "(seriesId: string) => void",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "EngineConfig",
+   "package": "core",
+   "file": "packages/core/src/types.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "backends",
+     "optional": false,
+     "type": "GpuBackend[]",
+     "doc": ""
+    },
+    {
+     "name": "prefer",
+     "optional": true,
+     "type": "BackendType",
+     "doc": ""
+    },
+    {
+     "name": "antialias",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "HeatmapSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'heatmap'",
+     "doc": ""
+    },
+    {
+     "name": "xField",
+     "optional": true,
+     "type": "string",
+     "doc": "Field names (rows) — tuples `[x, y, value]` are accepted too."
+    },
+    {
+     "name": "yField",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "valueField",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "colorScheme",
+     "optional": true,
+     "type": "string",
+     "doc": "Sequential / diverging scheme name (e.g. 'viridis', 'redBlue')."
+    },
+    {
+     "name": "thresholds",
+     "optional": true,
+     "type": "{ value: number; color: ColorInput }[]",
+     "doc": "Piecewise color map: values below each threshold get its color."
+    },
+    {
+     "name": "colorDomain",
+     "optional": true,
+     "type": "[number, number]",
+     "doc": "Domain for the continuous color map (defaults to the data extent)."
+    },
+    {
+     "name": "cellGap",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "borderRadius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "showValues",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "CandlestickSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'candlestick'",
+     "doc": ""
+    },
+    {
+     "name": "open",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "high",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "low",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "close",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "upColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "downColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "bodyWidth",
+     "optional": true,
+     "type": "number",
+     "doc": "Body width as a fraction of the band."
+    },
+    {
+     "name": "style",
+     "optional": true,
+     "type": "'candle' | 'ohlc'",
+     "doc": "'candle' (filled bodies) or 'ohlc' (bars with open / close ticks)."
+    },
+    {
+     "name": "volume",
+     "optional": true,
+     "type": "string",
+     "doc": "Field with traded volume; drawn as bars along the bottom of the plot."
+    },
+    {
+     "name": "volumeHeight",
+     "optional": true,
+     "type": "number",
+     "doc": "Fraction of the plot height used by volume bars. Default 0.2."
+    },
+    {
+     "name": "lastPrice",
+     "optional": true,
+     "type": "boolean | { color?: ColorInput; format?: (v: number) => string }",
+     "doc": "Dashed line at the last close with a price badge on the right edge."
+    }
+   ]
+  },
+  {
+   "name": "RangeBarSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'rangeBar'",
+     "doc": ""
+    },
+    {
+     "name": "start",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "end",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "layout",
+     "optional": true,
+     "type": "'vertical' | 'horizontal'",
+     "doc": "'horizontal' gives Gantt-style timelines."
+    },
+    {
+     "name": "borderRadius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "progressField",
+     "optional": true,
+     "type": "string",
+     "doc": "Optional progress field (0..1) drawn as an inner bar (Gantt)."
+    },
+    {
+     "name": "showLabels",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "WaterfallSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'waterfall'",
+     "doc": ""
+    },
+    {
+     "name": "totalField",
+     "optional": true,
+     "type": "string",
+     "doc": "Rows whose field is truthy are drawn as totals (from zero)."
+    },
+    {
+     "name": "upColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "downColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "totalColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "connectors",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "borderRadius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "showValues",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "BoxplotSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'boxplot'",
+     "doc": ""
+    },
+    {
+     "name": "whiskers",
+     "optional": true,
+     "type": "'iqr' | 'minmax'",
+     "doc": "'iqr' uses 1.5×IQR whiskers with outliers; 'minmax' spans all values."
+    },
+    {
+     "name": "showOutliers",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "boxWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "FunnelSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'funnel'",
+     "doc": ""
+    },
+    {
+     "name": "variant",
+     "optional": true,
+     "type": "'funnel' | 'pyramid'",
+     "doc": "'funnel' narrows to the last value, 'pyramid' is triangular."
+    },
+    {
+     "name": "gap",
+     "optional": true,
+     "type": "number",
+     "doc": "Gap between sections (px)."
+    },
+    {
+     "name": "orientation",
+     "optional": true,
+     "type": "'vertical' | 'horizontal'",
+     "doc": ""
+    },
+    {
+     "name": "sectionLabel",
+     "optional": true,
+     "type": "'value' | 'percent' | 'label' | false",
+     "doc": "Label inside each section: value, percent of first, or label."
+    }
+   ]
+  },
+  {
+   "name": "TreemapNode",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "name",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "value",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "TreemapNode[]",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "[key: string]",
+     "optional": false,
+     "type": "unknown",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "TreemapSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'treemap'",
+     "doc": ""
+    },
+    {
+     "name": "root",
+     "optional": true,
+     "type": "TreemapNode",
+     "doc": ""
+    },
+    {
+     "name": "tile",
+     "optional": true,
+     "type": "'squarify' | 'binary' | 'slice' | 'dice' | 'sliceDice'",
+     "doc": ""
+    },
+    {
+     "name": "padding",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "depth",
+     "optional": true,
+     "type": "number",
+     "doc": "Depth of nodes that are drawn (1 = top level children)."
+    },
+    {
+     "name": "showLabels",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "SankeyLink",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "source",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "target",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "value",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "'source' | 'target' | ColorInput",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "SankeySeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'sankey'",
+     "doc": ""
+    },
+    {
+     "name": "links",
+     "optional": true,
+     "type": "SankeyLink[]",
+     "doc": ""
+    },
+    {
+     "name": "nodes",
+     "optional": true,
+     "type": "{ id: string; label?: string; color?: ColorInput }[]",
+     "doc": ""
+    },
+    {
+     "name": "nodeWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "nodePadding",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "align",
+     "optional": true,
+     "type": "'justify' | 'left' | 'right' | 'center'",
+     "doc": ""
+    },
+    {
+     "name": "linkOpacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "VennSet",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "sets",
+     "optional": false,
+     "type": "string[]",
+     "doc": ""
+    },
+    {
+     "name": "size",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "VennSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'venn'",
+     "doc": ""
+    },
+    {
+     "name": "sets",
+     "optional": true,
+     "type": "VennSet[]",
+     "doc": ""
+    },
+    {
+     "name": "orientation",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "BulletSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'bullet'",
+     "doc": ""
+    },
+    {
+     "name": "data",
+     "optional": true,
+     "type": "Datum[]",
+     "doc": "Rows: { label, value, target, max?, thresholds? }."
+    },
+    {
+     "name": "labelField",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "targetField",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "maxValue",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "thresholds",
+     "optional": true,
+     "type": "{ value: number; color: ColorInput }[]",
+     "doc": ""
+    },
+    {
+     "name": "numberFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "RadarSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'radar'",
+     "doc": ""
+    },
+    {
+     "name": "metrics",
+     "optional": true,
+     "type": "string[]",
+     "doc": "Metric names (axes) in order; values read from rows by name."
+    },
+    {
+     "name": "max",
+     "optional": true,
+     "type": "number | Record<string, number>",
+     "doc": "Max per metric (defaults to the max across series)."
+    },
+    {
+     "name": "fillArea",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "showMarks",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "shape",
+     "optional": true,
+     "type": "'circular' | 'sharp'",
+     "doc": ""
+    },
+    {
+     "name": "divisions",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "SunburstSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'sunburst'",
+     "doc": ""
+    },
+    {
+     "name": "root",
+     "optional": true,
+     "type": "TreemapNode",
+     "doc": ""
+    },
+    {
+     "name": "innerRadius",
+     "optional": true,
+     "type": "number | string",
+     "doc": ""
+    },
+    {
+     "name": "cornerRadius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "showLabels",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ChordSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'chord'",
+     "doc": ""
+    },
+    {
+     "name": "matrix",
+     "optional": true,
+     "type": "number[][]",
+     "doc": "Square matrix of flows; matrix[i][j] = flow from i to j."
+    },
+    {
+     "name": "names",
+     "optional": true,
+     "type": "string[]",
+     "doc": ""
+    },
+    {
+     "name": "padAngle",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "ribbonOpacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "RadialBarSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'radialBar'",
+     "doc": ""
+    },
+    {
+     "name": "innerRadius",
+     "optional": true,
+     "type": "number | string",
+     "doc": ""
+    },
+    {
+     "name": "startAngle",
+     "optional": true,
+     "type": "number",
+     "doc": "Degrees."
+    },
+    {
+     "name": "endAngle",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "maxValue",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "cornerRadius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "track",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "MapRegion",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "id",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "name",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "value",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "[key: string]",
+     "optional": false,
+     "type": "unknown",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "MapSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/types-extra.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'map'",
+     "doc": ""
+    },
+    {
+     "name": "geoJson",
+     "optional": true,
+     "type": "{ type: 'FeatureCollection'; features: unknown[] }",
+     "doc": "GeoJSON FeatureCollection."
+    },
+    {
+     "name": "idProperty",
+     "optional": true,
+     "type": "string",
+     "doc": "Property used as region id."
+    },
+    {
+     "name": "regions",
+     "optional": true,
+     "type": "MapRegion[]",
+     "doc": ""
+    },
+    {
+     "name": "projection",
+     "optional": true,
+     "type": "'equalEarth' | 'mercator' | 'naturalEarth1' | 'equirectangular' | 'albersUsa' | 'orthographic'",
+     "doc": ""
+    },
+    {
+     "name": "colorScheme",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "unknownColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "strokeColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "rotate",
+     "optional": true,
+     "type": "[number, number]",
+     "doc": "Orthographic rotation [lambda, phi] in degrees."
+    }
+   ]
+  },
+  {
+   "name": "MorphSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/series/morph.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'morph'",
+     "doc": ""
+    },
+    {
+     "name": "mode",
+     "optional": true,
+     "type": "'bar' | 'horizontalBar' | 'pie' | 'donut' | 'radial'",
+     "doc": "Shape every item takes; changing it morphs items on the GPU."
+    },
+    {
+     "name": "showLabels",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ZoomRangeButton",
+   "package": "core",
+   "file": "packages/core/src/plugins/zoom.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "label",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "span",
+     "optional": false,
+     "type": "number | null",
+     "doc": "Visible span in axis units (ms for time axes); null resets."
+    }
+   ]
+  },
+  {
+   "name": "ZoomPluginOptions",
+   "package": "core",
+   "file": "packages/core/src/plugins/zoom.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "slider",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Zoom slider with a data preview below the plot."
+    },
+    {
+     "name": "wheel",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Wheel / trackpad-pinch zoom. Default true."
+    },
+    {
+     "name": "pan",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Drag to pan. Default true (Shift+drag when a marquee owns plain drags)."
+    },
+    {
+     "name": "keyboard",
+     "optional": true,
+     "type": "boolean",
+     "doc": "+/- / 0 and Shift+arrows. Default true."
+    },
+    {
+     "name": "rangeButtons",
+     "optional": true,
+     "type": "ZoomRangeButton[]",
+     "doc": "Preset spans shown as buttons in the top-right corner."
+    },
+    {
+     "name": "minSpan",
+     "optional": true,
+     "type": "number",
+     "doc": "Smallest visible span, in axis units."
+    }
+   ]
+  },
+  {
+   "name": "MarqueeSelection",
+   "package": "core",
+   "file": "packages/core/src/plugins/marquee.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "x",
+     "optional": false,
+     "type": "[DomainValue, DomainValue]",
+     "doc": "Selected x range (numbers for continuous axes, categories for ordinal axes)."
+    },
+    {
+     "name": "y",
+     "optional": true,
+     "type": "[DomainValue, DomainValue]",
+     "doc": "Selected y range ('y' and 'xy' modes, or a category range on ordinal y axes)."
+    },
+    {
+     "name": "items",
+     "optional": false,
+     "type": "{ seriesId: string; dataIndex: number; datum?: Datum; x?: DomainValue; y?: number | null }[]",
+     "doc": "Items inside the selection."
+    }
+   ]
+  },
+  {
+   "name": "MarqueeState",
+   "package": "core",
+   "file": "packages/core/src/plugins/marquee.ts",
+   "doc": "Live marquee state: pixel positions (plot coordinates) and the selection they cover.",
+   "props": [
+    {
+     "name": "start",
+     "optional": false,
+     "type": "PlotPoint",
+     "doc": ""
+    },
+    {
+     "name": "current",
+     "optional": false,
+     "type": "PlotPoint",
+     "doc": ""
+    },
+    {
+     "name": "active",
+     "optional": false,
+     "type": "boolean",
+     "doc": "True while dragging; false for a selection kept after release."
+    },
+    {
+     "name": "selection",
+     "optional": false,
+     "type": "MarqueeSelection | null",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "MarqueeOptions",
+   "package": "core",
+   "file": "packages/core/src/plugins/marquee.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "enabled",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Default true when options are given."
+    },
+    {
+     "name": "action",
+     "optional": true,
+     "type": "'zoom' | 'select' | 'none'",
+     "doc": "What a finished drag does: zoom into it (default), keep it as a selection, or nothing."
+    },
+    {
+     "name": "mode",
+     "optional": true,
+     "type": "'x' | 'y' | 'xy'",
+     "doc": "'x' selects a horizontal range, 'y' a vertical one, 'xy' a rectangle. Default: 'xy' for scatter, 'y' for horizontal bars, else 'x'."
+    },
+    {
+     "name": "modifier",
+     "optional": true,
+     "type": "'none' | 'shift'",
+     "doc": "Require Shift while dragging. Default 'none' (Shift+drag then pans a zoomed chart)."
+    },
+    {
+     "name": "persist",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Keep the selection after release ('select' action). Default true."
+    },
+    {
+     "name": "overlay",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Draw the selection rectangle. Default true."
+    },
+    {
+     "name": "labels",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Value badges at the selection edges. Default true."
+    },
+    {
+     "name": "preventTooltip",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Hide tooltips while dragging. Default true."
+    },
+    {
+     "name": "preventHighlight",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Clear hover highlight while dragging. Default true."
+    },
+    {
+     "name": "minSize",
+     "optional": true,
+     "type": "number",
+     "doc": "Smallest drag (px) that counts as a selection. Default 6."
+    },
+    {
+     "name": "resetButton",
+     "optional": true,
+     "type": "boolean",
+     "doc": "A \"Reset zoom\" chip while zoomed by the marquee. Default true."
+    },
+    {
+     "name": "onMarquee",
+     "optional": true,
+     "type": "(state: MarqueeState | null) => void",
+     "doc": "Called on every change (start, move, release, clear)."
+    },
+    {
+     "name": "onMarqueeEnd",
+     "optional": true,
+     "type": "(selection: MarqueeSelection | null) => void",
+     "doc": "Called when a drag finishes, with the selection (null when cleared)."
+    }
+   ]
+  },
+  {
+   "name": "MarqueePluginOptions",
+   "package": "core",
+   "file": "packages/core/src/plugins/marquee.ts",
+   "extends": "MarqueeOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "zoomOnRelease",
+     "optional": true,
+     "type": "boolean",
+     "doc": "@deprecated use `action: 'zoom'`."
+    }
+   ]
+  },
+  {
+   "name": "CrosshairOptions",
+   "package": "core",
+   "file": "packages/core/src/plugins/crosshair.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "x",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Vertical line. Default true."
+    },
+    {
+     "name": "y",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Horizontal line. Default true."
+    },
+    {
+     "name": "badges",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Value badges on the axes. Default true."
+    },
+    {
+     "name": "snap",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Snap the vertical line to the nearest category / data point. Default true."
+    }
+   ]
+  },
+  {
+   "name": "DirectLabelOptions",
+   "package": "core",
+   "file": "packages/core/src/plugins/annotations.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "value",
+     "optional": true,
+     "type": "'last' | 'average' | 'none'",
+     "doc": "Which value to show next to the label."
+    },
+    {
+     "name": "exclude",
+     "optional": true,
+     "type": "string[]",
+     "doc": "Series ids to skip."
+    },
+    {
+     "name": "format",
+     "optional": true,
+     "type": "(value: number) => string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AnnotationsPluginOptions",
+   "package": "core",
+   "file": "packages/core/src/plugins/annotations.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "directLabels",
+     "optional": true,
+     "type": "boolean | DirectLabelOptions",
+     "doc": "Labels at the end of each line / area series, stacked to avoid overlaps."
+    }
+   ]
+  },
+  {
+   "name": "BarProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "name",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metric",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "Facet",
+     "doc": "Data key to split series by color, or a static color `{ value: '#f00' }`."
+    },
+    {
+     "name": "colorOverride",
+     "optional": true,
+     "type": "string",
+     "doc": "Field holding a CSS color per row."
+    },
+    {
+     "name": "type",
+     "optional": true,
+     "type": "'stacked' | 'dodged'",
+     "doc": ""
+    },
+    {
+     "name": "orientation",
+     "optional": true,
+     "type": "'vertical' | 'horizontal'",
+     "doc": ""
+    },
+    {
+     "name": "paddingRatio",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "groupedPadding",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "hasSquareCorners",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "dimensionDataType",
+     "optional": true,
+     "type": "'time' | 'string'",
+     "doc": ""
+    },
+    {
+     "name": "showValues",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Shows the value next to each bar."
+    },
+    {
+     "name": "trellis",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key that splits the chart into small multiples (one panel per value)."
+    },
+    {
+     "name": "trellisOrientation",
+     "optional": true,
+     "type": "'horizontal' | 'vertical'",
+     "doc": "Panels side by side ('horizontal') or stacked ('vertical'). Default 'horizontal'."
+    },
+    {
+     "name": "trellisColumns",
+     "optional": true,
+     "type": "number",
+     "doc": "Panels per row (overrides the orientation)."
+    },
+    {
+     "name": "trellisPadding",
+     "optional": true,
+     "type": "number",
+     "doc": "Gap between panels as a ratio of panel size. Default 0.04."
+    },
+    {
+     "name": "onClick",
+     "optional": true,
+     "type": "(datum: Datum) => void",
+     "doc": ""
+    },
+    {
+     "name": "onContextMenu",
+     "optional": true,
+     "type": "(event: MouseEvent, datum: Datum) => void",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "LineProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "name",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metric",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "Facet",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "Facet<LineType>",
+     "doc": ""
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "LineWidth",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "scaleType",
+     "optional": true,
+     "type": "'time' | 'linear' | 'point'",
+     "doc": ""
+    },
+    {
+     "name": "interpolate",
+     "optional": true,
+     "type": "CurveType | 'monotone' | 'catmull-rom' | 'step-after' | 'step-before' | 'cardinal' | 'basis'",
+     "doc": ""
+    },
+    {
+     "name": "staticPoint",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "pointSize",
+     "optional": true,
+     "type": "SymbolSize",
+     "doc": ""
+    },
+    {
+     "name": "gradient",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "alternateSegmentKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Field marking rows drawn with the alternate (dotted) pattern."
+    },
+    {
+     "name": "trellis",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key that splits the chart into small multiples (one panel per value)."
+    },
+    {
+     "name": "trellisOrientation",
+     "optional": true,
+     "type": "'horizontal' | 'vertical'",
+     "doc": "Panels side by side ('horizontal') or stacked ('vertical'). Default 'horizontal'."
+    },
+    {
+     "name": "trellisColumns",
+     "optional": true,
+     "type": "number",
+     "doc": "Panels per row (overrides the orientation)."
+    },
+    {
+     "name": "trellisPadding",
+     "optional": true,
+     "type": "number",
+     "doc": "Gap between panels as a ratio of panel size. Default 0.04."
+    },
+    {
+     "name": "onClick",
+     "optional": true,
+     "type": "(datum: Datum) => void",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AreaProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "trellis",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key that splits the chart into small multiples (one panel per value)."
+    },
+    {
+     "name": "trellisOrientation",
+     "optional": true,
+     "type": "'horizontal' | 'vertical'",
+     "doc": "Panels side by side ('horizontal') or stacked ('vertical'). Default 'horizontal'."
+    },
+    {
+     "name": "trellisColumns",
+     "optional": true,
+     "type": "number",
+     "doc": "Panels per row (overrides the orientation)."
+    },
+    {
+     "name": "trellisPadding",
+     "optional": true,
+     "type": "number",
+     "doc": "Gap between panels as a ratio of panel size. Default 0.04."
+    },
+    {
+     "name": "name",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metric",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metricStart",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metricEnd",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "Facet",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "scaleType",
+     "optional": true,
+     "type": "'time' | 'linear' | 'point'",
+     "doc": ""
+    },
+    {
+     "name": "interpolate",
+     "optional": true,
+     "type": "LineProps['interpolate']",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ScatterProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "trellis",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key that splits the chart into small multiples (one panel per value)."
+    },
+    {
+     "name": "trellisOrientation",
+     "optional": true,
+     "type": "'horizontal' | 'vertical'",
+     "doc": "Panels side by side ('horizontal') or stacked ('vertical'). Default 'horizontal'."
+    },
+    {
+     "name": "trellisColumns",
+     "optional": true,
+     "type": "number",
+     "doc": "Panels per row (overrides the orientation)."
+    },
+    {
+     "name": "trellisPadding",
+     "optional": true,
+     "type": "number",
+     "doc": "Gap between panels as a ratio of panel size. Default 0.04."
+    },
+    {
+     "name": "name",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metric",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "Facet",
+     "doc": ""
+    },
+    {
+     "name": "colorScaleType",
+     "optional": true,
+     "type": "'linear' | 'ordinal'",
+     "doc": ""
+    },
+    {
+     "name": "colorScheme",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "size",
+     "optional": true,
+     "type": "Facet<SymbolSize>",
+     "doc": ""
+    },
+    {
+     "name": "symbolShape",
+     "optional": true,
+     "type": "SymbolShape",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "onClick",
+     "optional": true,
+     "type": "(datum: Datum) => void",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "DonutProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "name",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metric",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "holeRatio",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "startAngle",
+     "optional": true,
+     "type": "number",
+     "doc": "Radians."
+    },
+    {
+     "name": "isBoolean",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "sortOrder",
+     "optional": true,
+     "type": "'valueDescending' | 'data'",
+     "doc": ""
+    },
+    {
+     "name": "variant",
+     "optional": true,
+     "type": "'circle' | 'semicircle'",
+     "doc": ""
+    },
+    {
+     "name": "onClick",
+     "optional": true,
+     "type": "(datum: Datum) => void",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AxisProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "position",
+     "optional": false,
+     "type": "'top' | 'bottom' | 'left' | 'right'",
+     "doc": ""
+    },
+    {
+     "name": "name",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "title",
+     "optional": true,
+     "type": "string | string[]",
+     "doc": ""
+    },
+    {
+     "name": "grid",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "ticks",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "baseline",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "labelFormat",
+     "optional": true,
+     "type": "'linear' | 'percentage' | 'duration' | 'time'",
+     "doc": ""
+    },
+    {
+     "name": "granularity",
+     "optional": true,
+     "type": "TimeGranularity",
+     "doc": ""
+    },
+    {
+     "name": "numberFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    },
+    {
+     "name": "labelOrientation",
+     "optional": true,
+     "type": "'horizontal' | 'vertical'",
+     "doc": ""
+    },
+    {
+     "name": "labelLimit",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "truncateLabels",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "range",
+     "optional": true,
+     "type": "[number, number]",
+     "doc": ""
+    },
+    {
+     "name": "tickCountLimit",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "hideDefaultLabels",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "zoom",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Enables wheel / drag zoom (continuous axes)."
+    },
+    {
+     "name": "groups",
+     "optional": true,
+     "type": "AxisGroupLevel[]",
+     "doc": "Multi-level category labels (see also `AxisGroup`)."
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AxisAnnotationProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "Event markers / spans in a lane along the parent `Axis`.",
+   "props": [
+    {
+     "name": "annotations",
+     "optional": true,
+     "type": "AxisAnnotationSpec[]",
+     "doc": "Explicit annotations."
+    },
+    {
+     "name": "dataKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key holding annotation text. Each row with a value becomes a marker at the row's dimension value."
+    },
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key of the position (defaults to the chart's dimension)."
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "icon",
+     "optional": true,
+     "type": "AxisAnnotationSpec['icon']",
+     "doc": ""
+    },
+    {
+     "name": "format",
+     "optional": true,
+     "type": "'span' | 'summary'",
+     "doc": "'span' draws every annotation; 'summary' shows one badge with a count."
+    }
+   ]
+  },
+  {
+   "name": "AxisThumbnailProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "Images next to the ticks of the parent `Axis`.",
+   "props": [
+    {
+     "name": "urlKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key holding an image URL per category."
+    },
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key of the category (defaults to the chart's dimension)."
+    },
+    {
+     "name": "getUrl",
+     "optional": true,
+     "type": "(value: unknown) => string | undefined",
+     "doc": ""
+    },
+    {
+     "name": "size",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "radius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "hideLabel",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AxisGroupProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "One level of grouped category labels on the parent `Axis`.",
+   "props": [
+    {
+     "name": "dataKey",
+     "optional": false,
+     "type": "string",
+     "doc": "Data key holding the group of each category."
+    },
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key of the category (defaults to the chart's dimension)."
+    }
+   ]
+  },
+  {
+   "name": "LinePointAnnotationProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "A labelled callout on a point of the parent `Line` (or `Bar` / `Area`).",
+   "props": [
+    {
+     "name": "dimensionValue",
+     "optional": false,
+     "type": "unknown",
+     "doc": "Dimension value to annotate, or 'first' / 'last' / 'max' / 'min'."
+    },
+    {
+     "name": "series",
+     "optional": true,
+     "type": "string",
+     "doc": "Color facet value when the mark is split into several series."
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string | ((value: number) => string)",
+     "doc": ""
+    },
+    {
+     "name": "anchor",
+     "optional": true,
+     "type": "'top' | 'bottom' | 'left' | 'right'",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "offset",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ScatterAnnotationProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "Labels next to points of the parent `Scatter`.",
+   "props": [
+    {
+     "name": "textKey",
+     "optional": false,
+     "type": "string",
+     "doc": "Data key shown as the label."
+    },
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'right' | 'left' | 'top' | 'bottom'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ScatterPathProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "Lines connecting points of the parent `Scatter`.",
+   "props": [
+    {
+     "name": "groupBy",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key that splits points into separate paths."
+    },
+    {
+     "name": "order",
+     "optional": true,
+     "type": "'data' | 'x'",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "pathWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ChartAction",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "label",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "icon",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": "Optional icon element."
+    },
+    {
+     "name": "onAction",
+     "optional": false,
+     "type": "(datum: Datum) => void",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ChartActionBarProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "Actions shown next to a mark after it is clicked (Esc or outside click closes).",
+   "props": [
+    {
+     "name": "actions",
+     "optional": false,
+     "type": "ChartAction[]",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ReferenceLineProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "value",
+     "optional": false,
+     "type": "number | string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "labelPosition",
+     "optional": true,
+     "type": "'start' | 'end' | 'axis'",
+     "doc": ""
+    },
+    {
+     "name": "layer",
+     "optional": true,
+     "type": "'back' | 'front'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "LegendProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'top' | 'bottom' | 'left' | 'right'",
+     "doc": ""
+    },
+    {
+     "name": "align",
+     "optional": true,
+     "type": "'start' | 'middle' | 'end'",
+     "doc": ""
+    },
+    {
+     "name": "title",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "isToggleable",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "highlight",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "legendLabels",
+     "optional": true,
+     "type": "{ seriesName: string; label: string }[]",
+     "doc": ""
+    },
+    {
+     "name": "hiddenEntries",
+     "optional": true,
+     "type": "string[]",
+     "doc": ""
+    },
+    {
+     "name": "descriptions",
+     "optional": true,
+     "type": "{ seriesName: string; description: string }[]",
+     "doc": ""
+    },
+    {
+     "name": "onClick",
+     "optional": true,
+     "type": "(seriesName: string) => void",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ChartTooltipProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "children",
+     "optional": true,
+     "type": "(datum: Datum) => ReactNode",
+     "doc": ""
+    },
+    {
+     "name": "highlightBy",
+     "optional": true,
+     "type": "'item' | 'series' | 'dimension'",
+     "doc": ""
+    },
+    {
+     "name": "excludeDataKeys",
+     "optional": true,
+     "type": "string[]",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ChartPopoverProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "children",
+     "optional": true,
+     "type": "(datum: Datum, close: () => void) => ReactNode",
+     "doc": ""
+    },
+    {
+     "name": "width",
+     "optional": true,
+     "type": "number | 'auto'",
+     "doc": ""
+    },
+    {
+     "name": "rightClick",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "onOpenChange",
+     "optional": true,
+     "type": "(open: boolean) => void",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "TitleProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "text",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'start' | 'middle' | 'end'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "DonutSummaryProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "numberFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    },
+    {
+     "name": "hideValue",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "SegmentLabelProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "percent",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "value",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "valueFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ComboProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "BigNumberProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "dataKey",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "method",
+     "optional": true,
+     "type": "'sum' | 'avg' | 'last'",
+     "doc": ""
+    },
+    {
+     "name": "numberFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    },
+    {
+     "name": "orientation",
+     "optional": true,
+     "type": "'vertical' | 'horizontal'",
+     "doc": ""
+    },
+    {
+     "name": "icon",
+     "optional": true,
+     "type": "ReactElement",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "TrendlineProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "method",
+     "optional": true,
+     "type": "'linear' | 'average' | 'median' | 'exponential' | 'logarithmic' | 'power' | 'quadratic' | `polynomial-${number}` | `movingAverage-${number}`",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "opacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "dimensionExtent",
+     "optional": true,
+     "type": "'domain'",
+     "doc": "Extend across the whole dimension domain."
+    },
+    {
+     "name": "displayOnHover",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "MetricRangeProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "metricStart",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metricEnd",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "lineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": ""
+    },
+    {
+     "name": "rangeOpacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "displayOnHover",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "BulletProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "dimension",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "metric",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "target",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "maxScaleValue",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "thresholds",
+     "optional": true,
+     "type": "{ thresholdMax: number; fill: string }[]",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "numberFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "VennProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "metric",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "setsKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Field holding the sets array."
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "CommonChartProps",
+   "package": "react",
+   "file": "packages/react/src/props/common.tsx",
+   "doc": "Props shared by every props-driven chart component.",
+   "props": [
+    {
+     "name": "width",
+     "optional": true,
+     "type": "ChartSize",
+     "doc": ""
+    },
+    {
+     "name": "height",
+     "optional": true,
+     "type": "ChartSize",
+     "doc": ""
+    },
+    {
+     "name": "dataset",
+     "optional": true,
+     "type": "Datum[]",
+     "doc": ""
+    },
+    {
+     "name": "xAxis",
+     "optional": true,
+     "type": "AxisOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "yAxis",
+     "optional": true,
+     "type": "AxisOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "colors",
+     "optional": true,
+     "type": "PaletteInput",
+     "doc": ""
+    },
+    {
+     "name": "colorScheme",
+     "optional": true,
+     "type": "'light' | 'dark'",
+     "doc": ""
+    },
+    {
+     "name": "margin",
+     "optional": true,
+     "type": "ChartOptions['margin']",
+     "doc": ""
+    },
+    {
+     "name": "grid",
+     "optional": true,
+     "type": "ChartOptions['grid']",
+     "doc": ""
+    },
+    {
+     "name": "title",
+     "optional": true,
+     "type": "ChartOptions['title']",
+     "doc": ""
+    },
+    {
+     "name": "description",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "locale",
+     "optional": true,
+     "type": "ChartOptions['locale']",
+     "doc": ""
+    },
+    {
+     "name": "hideLegend",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "legend",
+     "optional": true,
+     "type": "LegendOptions",
+     "doc": ""
+    },
+    {
+     "name": "tooltip",
+     "optional": true,
+     "type": "TooltipOptions | false",
+     "doc": ""
+    },
+    {
+     "name": "renderTooltip",
+     "optional": true,
+     "type": "(ctx: TooltipContext) => ReactNode",
+     "doc": "React tooltip content."
+    },
+    {
+     "name": "referenceLines",
+     "optional": true,
+     "type": "ReferenceLineOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "referenceAreas",
+     "optional": true,
+     "type": "ReferenceAreaOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "trendlines",
+     "optional": true,
+     "type": "TrendlineOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "pointAnnotations",
+     "optional": true,
+     "type": "PointAnnotationOptions[]",
+     "doc": "Labelled callouts on data points."
+    },
+    {
+     "name": "scatterPaths",
+     "optional": true,
+     "type": "ScatterPathOptions[]",
+     "doc": "Lines connecting scatter points."
+    },
+    {
+     "name": "scatterLabels",
+     "optional": true,
+     "type": "ScatterLabelOptions[]",
+     "doc": "Text labels next to scatter points."
+    },
+    {
+     "name": "onAxisAnnotationClick",
+     "optional": true,
+     "type": "ChartOptions['onAxisAnnotationClick']",
+     "doc": ""
+    },
+    {
+     "name": "toolbar",
+     "optional": true,
+     "type": "boolean | ToolbarOptions",
+     "doc": "Toolbar with zoom, downloads (PNG, SVG, CSV, .xlsx), print and full screen."
+    },
+    {
+     "name": "marquee",
+     "optional": true,
+     "type": "boolean | MarqueeOptions",
+     "doc": "Drag to zoom into a range (default), or `{ action: 'select' }` to select data."
+    },
+    {
+     "name": "slots",
+     "optional": true,
+     "type": "ChartSlots",
+     "doc": "Replace the tooltip, legend or overlays with React components."
+    },
+    {
+     "name": "slotProps",
+     "optional": true,
+     "type": "ChartSlotProps",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": "Custom layers over the plot (use `ChartsSvgLayer` and the scale hooks)."
+    },
+    {
+     "name": "serverSvg",
+     "optional": true,
+     "type": "string",
+     "doc": "Server-rendered SVG (`renderToSVGString`) shown until the GPU chart takes over."
+    },
+    {
+     "name": "plugins",
+     "optional": true,
+     "type": "ChartPlugin[]",
+     "doc": "Extra chart plugins (marquee, crosshair, annotations, zoom with options, ...)."
+    },
+    {
+     "name": "initialZoom",
+     "optional": true,
+     "type": "ZoomState[]",
+     "doc": ""
+    },
+    {
+     "name": "onZoomChange",
+     "optional": true,
+     "type": "(zoom: ZoomState[]) => void",
+     "doc": ""
+    },
+    {
+     "name": "skipAnimation",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "animation",
+     "optional": true,
+     "type": "ChartOptions['animation']",
+     "doc": ""
+    },
+    {
+     "name": "loading",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "noDataText",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "highlightedItem",
+     "optional": true,
+     "type": "ItemIdentifier | null",
+     "doc": ""
+    },
+    {
+     "name": "onHighlightChange",
+     "optional": true,
+     "type": "(item: ItemIdentifier | null) => void",
+     "doc": ""
+    },
+    {
+     "name": "highlightScope",
+     "optional": true,
+     "type": "HighlightScopeOptions",
+     "doc": ""
+    },
+    {
+     "name": "hiddenSeries",
+     "optional": true,
+     "type": "string[]",
+     "doc": ""
+    },
+    {
+     "name": "onHiddenSeriesChange",
+     "optional": true,
+     "type": "(ids: string[]) => void",
+     "doc": ""
+    },
+    {
+     "name": "onItemClick",
+     "optional": true,
+     "type": "ChartOptions['onItemClick']",
+     "doc": ""
+    },
+    {
+     "name": "onAxisClick",
+     "optional": true,
+     "type": "ChartOptions['onAxisClick']",
+     "doc": ""
+    },
+    {
+     "name": "axisHighlight",
+     "optional": true,
+     "type": "ChartOptions['axisHighlight']",
+     "doc": ""
+    },
+    {
+     "name": "backgroundColor",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "disableKeyboardNavigation",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "className",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "style",
+     "optional": true,
+     "type": "React.CSSProperties",
+     "doc": ""
+    },
+    {
+     "name": "onBackend",
+     "optional": true,
+     "type": "(backend: string) => void",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "BarChartProps",
+   "package": "react",
+   "file": "packages/react/src/props/charts.tsx",
+   "extends": "CommonChartProps",
+   "doc": "",
+   "props": [
+    {
+     "name": "series",
+     "optional": false,
+     "type": "WithoutType<BarSeriesOptions>[]",
+     "doc": ""
+    },
+    {
+     "name": "layout",
+     "optional": true,
+     "type": "'vertical' | 'horizontal'",
+     "doc": ""
+    },
+    {
+     "name": "borderRadius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "barLabel",
+     "optional": true,
+     "type": "BarSeriesOptions['barLabel']",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "LineChartProps",
+   "package": "react",
+   "file": "packages/react/src/props/charts.tsx",
+   "extends": "CommonChartProps",
+   "doc": "",
+   "props": [
+    {
+     "name": "series",
+     "optional": false,
+     "type": "WithoutType<LineSeriesOptions>[]",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AreaChartProps",
+   "package": "react",
+   "file": "packages/react/src/props/charts.tsx",
+   "extends": "CommonChartProps",
+   "doc": "",
+   "props": [
+    {
+     "name": "series",
+     "optional": false,
+     "type": "WithoutType<AreaSeriesOptions>[]",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ScatterChartProps",
+   "package": "react",
+   "file": "packages/react/src/props/charts.tsx",
+   "extends": "CommonChartProps",
+   "doc": "",
+   "props": [
+    {
+     "name": "series",
+     "optional": false,
+     "type": "WithoutType<ScatterSeriesOptions>[]",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "PieChartProps",
+   "package": "react",
+   "file": "packages/react/src/props/charts.tsx",
+   "extends": "CommonChartProps",
+   "doc": "",
+   "props": [
+    {
+     "name": "series",
+     "optional": false,
+     "type": "WithoutType<PieSeriesOptions>[]",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "SparkLineChartProps",
+   "package": "react",
+   "file": "packages/react/src/props/charts.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "data",
+     "optional": false,
+     "type": "(number | null)[]",
+     "doc": ""
+    },
+    {
+     "name": "plotType",
+     "optional": true,
+     "type": "'line' | 'bar'",
+     "doc": ""
+    },
+    {
+     "name": "area",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "curve",
+     "optional": true,
+     "type": "LineSeriesOptions['curve']",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "width",
+     "optional": true,
+     "type": "number | `${number}%`",
+     "doc": ""
+    },
+    {
+     "name": "height",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "showTooltip",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "showHighlight",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "valueFormatter",
+     "optional": true,
+     "type": "(v: number | null) => string",
+     "doc": ""
+    },
+    {
+     "name": "yAxis",
+     "optional": true,
+     "type": "{ min?: number; max?: number }",
+     "doc": ""
+    },
+    {
+     "name": "colorScheme",
+     "optional": true,
+     "type": "'light' | 'dark'",
+     "doc": ""
+    },
+    {
+     "name": "className",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "GaugeProps",
+   "package": "react",
+   "file": "packages/react/src/props/charts.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "value",
+     "optional": false,
+     "type": "number | null",
+     "doc": ""
+    },
+    {
+     "name": "valueMin",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "valueMax",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "startAngle",
+     "optional": true,
+     "type": "number",
+     "doc": "Degrees."
+    },
+    {
+     "name": "endAngle",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "innerRadius",
+     "optional": true,
+     "type": "number | string",
+     "doc": ""
+    },
+    {
+     "name": "outerRadius",
+     "optional": true,
+     "type": "number | string",
+     "doc": ""
+    },
+    {
+     "name": "cornerRadius",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "text",
+     "optional": true,
+     "type": "string | ((p: { value: number | null; valueMin: number; valueMax: number }) => string)",
+     "doc": "Text in the center; a function receives the value."
+    },
+    {
+     "name": "color",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "trackColor",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "width",
+     "optional": true,
+     "type": "number | `${number}%`",
+     "doc": ""
+    },
+    {
+     "name": "height",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "colorScheme",
+     "optional": true,
+     "type": "'light' | 'dark'",
+     "doc": ""
+    },
+    {
+     "name": "className",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ChartsContainerProps",
+   "package": "react",
+   "file": "packages/react/src/props/charts.tsx",
+   "extends": "CommonChartProps",
+   "doc": "Props for `ChartsContainer`: a chart that mixes any series types (bars, lines, scatter, ...) on shared axes. Accepts every common chart prop plus the series.",
+   "props": [
+    {
+     "name": "series",
+     "optional": false,
+     "type": "SeriesOptions[]",
+     "doc": ""
+    },
+    {
+     "name": "seriesTypes",
+     "optional": true,
+     "type": "SeriesDefinition<any>[]",
+     "doc": "Series types to register (defaults to the types used by `series`)."
+    }
+   ]
+  },
+  {
+   "name": "ToolbarItem",
+   "package": "core",
+   "file": "packages/core/src/plugins/toolbar.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "id",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "icon",
+     "optional": true,
+     "type": "string",
+     "doc": "SVG markup (24×24 viewBox, `currentColor`)."
+    },
+    {
+     "name": "onClick",
+     "optional": false,
+     "type": "(chart: Chart) => void",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ToolbarOptions",
+   "package": "core",
+   "file": "packages/core/src/plugins/toolbar.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "items",
+     "optional": true,
+     "type": "Array<ToolbarBuiltin | ToolbarItem>",
+     "doc": "Built-in ids and / or custom items, in display order."
+    },
+    {
+     "name": "visibility",
+     "optional": true,
+     "type": "'hover' | 'always'",
+     "doc": "'hover' shows the bar while the pointer or focus is on the chart. Default 'hover'."
+    },
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "RadialLineSeriesOptions",
+   "package": "core",
+   "file": "packages/core/src/series/radial-line.ts",
+   "extends": "BaseSeriesOptions",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'radialLine'",
+     "doc": ""
+    },
+    {
+     "name": "data",
+     "optional": true,
+     "type": "ReadonlyArray<number | null | { angle: number | string | Date; value: number | null }>",
+     "doc": "Values, or `{ angle, value }` rows."
+    },
+    {
+     "name": "angles",
+     "optional": true,
+     "type": "ReadonlyArray<number | string | Date>",
+     "doc": "Angle positions for `data` values: category names (spaced evenly) or numbers / dates (mapped linearly onto the sweep)."
+    },
+    {
+     "name": "angleDomain",
+     "optional": true,
+     "type": "[number, number]",
+     "doc": "Numeric angle domain; defaults to the data extent (or [0, 360) for degrees-like data)."
+    },
+    {
+     "name": "radiusDomain",
+     "optional": true,
+     "type": "[number, number]",
+     "doc": "Value range of the radius; defaults to [0, max]."
+    },
+    {
+     "name": "innerRadius",
+     "optional": true,
+     "type": "number | string",
+     "doc": "Inner radius (px or %) — a hole in the middle."
+    },
+    {
+     "name": "startAngle",
+     "optional": true,
+     "type": "number",
+     "doc": "Sweep in degrees, clockwise from 12 o'clock. Default 0..360."
+    },
+    {
+     "name": "endAngle",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "closed",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Joins the last point to the first. Default: true for categorical angles."
+    },
+    {
+     "name": "area",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Fills between the line and the center."
+    },
+    {
+     "name": "curve",
+     "optional": true,
+     "type": "'linear' | 'smooth'",
+     "doc": ""
+    },
+    {
+     "name": "showMarks",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "divisions",
+     "optional": true,
+     "type": "number",
+     "doc": "Concentric grid rings. Default 4."
+    },
+    {
+     "name": "angleFormatter",
+     "optional": true,
+     "type": "(angle: number | string | Date) => string",
+     "doc": "Formats the angle labels."
+    },
+    {
+     "name": "angleTickValues",
+     "optional": true,
+     "type": "number[]",
+     "doc": "Explicit spoke positions for numeric angles."
+    }
+   ]
+  },
+  {
+   "name": "RenderToSvgConfig",
+   "package": "core",
+   "file": "packages/core/src/svg/ssr.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "series",
+     "optional": false,
+     "type": "SeriesDefinition<any>[]",
+     "doc": ""
+    },
+    {
+     "name": "width",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "height",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ChartWorkerConfig",
+   "package": "core",
+   "file": "packages/core/src/worker/runtime.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "series",
+     "optional": false,
+     "type": "SeriesDefinition<any>[]",
+     "doc": "Series types this worker can render (only these are bundled into the worker)."
+    },
+    {
+     "name": "backends",
+     "optional": false,
+     "type": "GpuBackend[]",
+     "doc": "GPU backends in preference order."
+    },
+    {
+     "name": "setup",
+     "optional": true,
+     "type": "(chart: WorkerChartApi) => void",
+     "doc": "Runs inside the worker once the chart exists. Data produced here (sockets, simulations, parsing) never touches the main thread."
+    }
+   ]
+  },
+  {
+   "name": "WorkerChartApi",
+   "package": "core",
+   "file": "packages/core/src/worker/runtime.ts",
+   "doc": "What `setup` can do with the worker's chart.",
+   "props": []
+  },
+  {
+   "name": "WorkerChartOptions",
+   "package": "core",
+   "file": "packages/core/src/worker/host.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "prefer",
+     "optional": true,
+     "type": "'webgpu' | 'webgl2'",
+     "doc": "Force a backend inside the worker."
+    },
+    {
+     "name": "onReady",
+     "optional": true,
+     "type": "(backend: string) => void",
+     "doc": ""
+    },
+    {
+     "name": "onError",
+     "optional": true,
+     "type": "(message: string) => void",
+     "doc": ""
+    },
+    {
+     "name": "onFrameStats",
+     "optional": true,
+     "type": "(stats: { fps: number; frameMs: number }) => void",
+     "doc": "Frames rendered per second inside the worker (reported once a second)."
+    }
+   ]
+  },
+  {
+   "name": "LegendSlotProps",
+   "package": "react",
+   "file": "packages/react/src/GLChart.tsx",
+   "doc": "Props a custom legend slot receives.",
+   "props": [
+    {
+     "name": "items",
+     "optional": false,
+     "type": "LegendEntry[]",
+     "doc": ""
+    },
+    {
+     "name": "hidden",
+     "optional": false,
+     "type": "string[]",
+     "doc": ""
+    },
+    {
+     "name": "toggle",
+     "optional": false,
+     "type": "(id: string) => void",
+     "doc": ""
+    },
+    {
+     "name": "highlight",
+     "optional": false,
+     "type": "(id: string | null) => void",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "ChartSlots",
+   "package": "react",
+   "file": "packages/react/src/GLChart.tsx",
+   "doc": "Replaceable pieces of a chart (rendered with React).",
+   "props": [
+    {
+     "name": "tooltip",
+     "optional": true,
+     "type": "ComponentType<{ context: TooltipContext } & Record<string, unknown>>",
+     "doc": "Tooltip content. Receives `context` plus `slotProps.tooltip`."
+    },
+    {
+     "name": "legend",
+     "optional": true,
+     "type": "ComponentType<LegendSlotProps & Record<string, unknown>>",
+     "doc": "Replaces the built-in legend; rendered under the chart."
+    },
+    {
+     "name": "loadingOverlay",
+     "optional": true,
+     "type": "ComponentType<Record<string, unknown>>",
+     "doc": "Shown over the plot while `loading` is true."
+    },
+    {
+     "name": "noDataOverlay",
+     "optional": true,
+     "type": "ComponentType<Record<string, unknown>>",
+     "doc": "Shown over the plot when there is no data."
+    }
+   ]
+  },
+  {
+   "name": "ChartHandle",
+   "package": "react",
+   "file": "packages/react/src/GLChart.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "chart",
+     "optional": false,
+     "type": "Chart | null",
+     "doc": "Underlying engine chart."
+    }
+   ]
+  },
+  {
+   "name": "GLChartProps",
+   "package": "react",
+   "file": "packages/react/src/GLChart.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "options",
+     "optional": false,
+     "type": "ChartOptions",
+     "doc": ""
+    },
+    {
+     "name": "seriesTypes",
+     "optional": false,
+     "type": "SeriesDefinition<any>[]",
+     "doc": ""
+    },
+    {
+     "name": "plugins",
+     "optional": true,
+     "type": "ChartPlugin[]",
+     "doc": "Chart plugins. Defaults to the plugins implied by the options (see `autoPlugins`)."
+    },
+    {
+     "name": "width",
+     "optional": true,
+     "type": "ChartSize",
+     "doc": ""
+    },
+    {
+     "name": "height",
+     "optional": true,
+     "type": "ChartSize",
+     "doc": ""
+    },
+    {
+     "name": "minWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "maxWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "minHeight",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "maxHeight",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "className",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "style",
+     "optional": true,
+     "type": "CSSProperties",
+     "doc": ""
+    },
+    {
+     "name": "renderTooltip",
+     "optional": true,
+     "type": "(ctx: TooltipContext) => ReactNode",
+     "doc": "Renders tooltip content with React (the engine only positions it)."
+    },
+    {
+     "name": "overlay",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": "Extra React content layered over the plot (popovers, custom overlays)."
+    },
+    {
+     "name": "onReady",
+     "optional": true,
+     "type": "(chart: Chart) => void",
+     "doc": ""
+    },
+    {
+     "name": "onBackend",
+     "optional": true,
+     "type": "(backend: string) => void",
+     "doc": ""
+    },
+    {
+     "name": "dataTestId",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "slots",
+     "optional": true,
+     "type": "ChartSlots",
+     "doc": ""
+    },
+    {
+     "name": "slotProps",
+     "optional": true,
+     "type": "ChartSlotProps",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": "React children layered over the plot; they can use the chart hooks (`useXScale`, ...)."
+    },
+    {
+     "name": "serverSvg",
+     "optional": true,
+     "type": "string",
+     "doc": "SVG from `renderToSVGString` (server rendering). It is shown immediately and the GPU chart takes over without an entrance animation."
+    }
+   ]
+  },
+  {
+   "name": "WorkerChartProps",
+   "package": "react",
+   "file": "packages/react/src/WorkerChart.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "worker",
+     "optional": false,
+     "type": "() => Worker",
+     "doc": "Creates the worker (called once per mount), e.g. `() => new Worker(new URL('./chart.worker.ts', import.meta.url), { type: 'module' })`."
+    },
+    {
+     "name": "options",
+     "optional": false,
+     "type": "ChartOptions",
+     "doc": "Structured-cloneable options (functions are dropped)."
+    },
+    {
+     "name": "width",
+     "optional": true,
+     "type": "ChartSize",
+     "doc": ""
+    },
+    {
+     "name": "height",
+     "optional": true,
+     "type": "ChartSize",
+     "doc": ""
+    },
+    {
+     "name": "prefer",
+     "optional": true,
+     "type": "'webgpu' | 'webgl2'",
+     "doc": ""
+    },
+    {
+     "name": "className",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "style",
+     "optional": true,
+     "type": "CSSProperties",
+     "doc": ""
+    },
+    {
+     "name": "onReady",
+     "optional": true,
+     "type": "(backend: string) => void",
+     "doc": ""
+    },
+    {
+     "name": "onFrameStats",
+     "optional": true,
+     "type": "(stats: { fps: number; frameMs: number }) => void",
+     "doc": ""
+    },
+    {
+     "name": "onChart",
+     "optional": true,
+     "type": "(chart: EngineWorkerChart) => void",
+     "doc": "Receives the host to stream data (`appendData`) from the page."
+    }
+   ]
+  },
+  {
+   "name": "TrellisProps",
+   "package": "react",
+   "file": "packages/react/src/props/trellis.tsx",
+   "doc": "",
+   "props": [
+    {
+     "name": "data",
+     "optional": false,
+     "type": "T[]",
+     "doc": ""
+    },
+    {
+     "name": "by",
+     "optional": false,
+     "type": "string",
+     "doc": "Field that splits the data into panels."
+    },
+    {
+     "name": "columns",
+     "optional": true,
+     "type": "number",
+     "doc": "Panels per row. Default: all in one row."
+    },
+    {
+     "name": "gap",
+     "optional": true,
+     "type": "number",
+     "doc": "Gap between panels (px). Default 12."
+    },
+    {
+     "name": "order",
+     "optional": true,
+     "type": "'data' | 'asc' | 'desc' | unknown[]",
+     "doc": "Panel order: data order, sorted, or an explicit list of values."
+    },
+    {
+     "name": "sharedScale",
+     "optional": true,
+     "type": "{ metric: string; stackBy?: string[]; includeZero?: boolean }",
+     "doc": "Computes one value range shared by every panel. `stackBy` sums values that share those keys first (stacked bars / areas)."
+    },
+    {
+     "name": "panelTitle",
+     "optional": true,
+     "type": "(facet: Facet<T>) => ReactNode",
+     "doc": "Panel title; defaults to the facet value."
+    },
+    {
+     "name": "children",
+     "optional": false,
+     "type": "(rows: T[], facet: Facet<T>, range: [number, number] | undefined, index: number) => ReactNode",
+     "doc": "Renders one panel. `range` is the shared value range, when requested."
+    },
+    {
+     "name": "className",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "style",
+     "optional": true,
+     "type": "CSSProperties",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Axis3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/chart3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "min",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "max",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "format",
+     "optional": true,
+     "type": "(v: number | string) => string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "CameraOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/chart3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "azimuth",
+     "optional": true,
+     "type": "number",
+     "doc": "Degrees around the vertical axis."
+    },
+    {
+     "name": "elevation",
+     "optional": true,
+     "type": "number",
+     "doc": "Degrees above the floor."
+    },
+    {
+     "name": "distance",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "autoRotate",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "autoRotateSpeed",
+     "optional": true,
+     "type": "number",
+     "doc": "Degrees per second."
+    }
+   ]
+  },
+  {
+   "name": "Bar3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/chart3d.ts",
+   "extends": "BaseOptions3D",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'bar'",
+     "doc": ""
+    },
+    {
+     "name": "x",
+     "optional": false,
+     "type": "string[]",
+     "doc": "Categories along x."
+    },
+    {
+     "name": "z",
+     "optional": false,
+     "type": "string[]",
+     "doc": "Categories along z (one row of bars per entry)."
+    },
+    {
+     "name": "values",
+     "optional": false,
+     "type": "number[][]",
+     "doc": "values[zIndex][xIndex]"
+    },
+    {
+     "name": "colorBy",
+     "optional": true,
+     "type": "'z' | 'x' | 'value'",
+     "doc": "Color by row (z), column (x) or a sequential scale on the value."
+    },
+    {
+     "name": "sequentialScheme",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "barSize",
+     "optional": true,
+     "type": "number",
+     "doc": "Footprint fraction of each cell (0..1)."
+    },
+    {
+     "name": "shape",
+     "optional": true,
+     "type": "BarShape",
+     "doc": "Bar geometry. Default 'box'."
+    }
+   ]
+  },
+  {
+   "name": "Scatter3DPoint",
+   "package": "3d",
+   "file": "packages/three-d/src/chart3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "x",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "y",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "z",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "size",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Scatter3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/chart3d.ts",
+   "extends": "BaseOptions3D",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'scatter'",
+     "doc": ""
+    },
+    {
+     "name": "series",
+     "optional": false,
+     "type": "{ id?: string; label: string; color?: string; data: Scatter3DPoint[]; size?: number }[]",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Surface3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/chart3d.ts",
+   "extends": "BaseOptions3D",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'surface'",
+     "doc": ""
+    },
+    {
+     "name": "xs",
+     "optional": false,
+     "type": "number[]",
+     "doc": ""
+    },
+    {
+     "name": "zs",
+     "optional": false,
+     "type": "number[]",
+     "doc": ""
+    },
+    {
+     "name": "values",
+     "optional": false,
+     "type": "number[][] | ((x: number, z: number) => number)",
+     "doc": "values[zIndex][xIndex] or a function of (x, z)."
+    },
+    {
+     "name": "sequentialScheme",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "wireframe",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "contours",
+     "optional": true,
+     "type": "number | number[]",
+     "doc": "Iso-lines: a count of evenly spaced levels or explicit values."
+    },
+    {
+     "name": "floorContours",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Also project the iso-lines onto the floor."
+    }
+   ]
+  },
+  {
+   "name": "Item3D",
+   "package": "3d",
+   "file": "packages/three-d/src/chart3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "seriesIndex",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "dataIndex",
+     "optional": false,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "rows",
+     "optional": false,
+     "type": "{ label: string; value: string; color?: string }[]",
+     "doc": ""
+    },
+    {
+     "name": "color",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "anchor",
+     "optional": false,
+     "type": "{ x: number; y: number }",
+     "doc": ""
+    },
+    {
+     "name": "hlIndex",
+     "optional": true,
+     "type": "number",
+     "doc": "Data index used for highlighting (-1 highlights the whole series)."
+    }
+   ]
+  },
+  {
+   "name": "Common3D",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "colorScheme",
+     "optional": true,
+     "type": "'light' | 'dark'",
+     "doc": ""
+    },
+    {
+     "name": "colors",
+     "optional": true,
+     "type": "string | string[]",
+     "doc": ""
+    },
+    {
+     "name": "valueFormatter",
+     "optional": true,
+     "type": "(v: number) => string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "StackedBar3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'stackedBar'",
+     "doc": ""
+    },
+    {
+     "name": "x",
+     "optional": false,
+     "type": "string[]",
+     "doc": ""
+    },
+    {
+     "name": "z",
+     "optional": false,
+     "type": "string[]",
+     "doc": ""
+    },
+    {
+     "name": "stacks",
+     "optional": false,
+     "type": "{ label: string; color?: string; values: number[][] }[]",
+     "doc": "One entry per stack layer; values[zIndex][xIndex]."
+    },
+    {
+     "name": "shape",
+     "optional": true,
+     "type": "BarShape",
+     "doc": ""
+    },
+    {
+     "name": "barSize",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Pie3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'pie'",
+     "doc": ""
+    },
+    {
+     "name": "data",
+     "optional": false,
+     "type": "{ label: string; value: number; color?: string }[]",
+     "doc": ""
+    },
+    {
+     "name": "innerRadius",
+     "optional": true,
+     "type": "number",
+     "doc": "Hole size 0..1 (donut)."
+    },
+    {
+     "name": "thickness",
+     "optional": true,
+     "type": "number",
+     "doc": "Slice thickness in world units. Default 0.16."
+    },
+    {
+     "name": "heightByValue",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Slice heights proportional to value (a \"3D rose\")."
+    },
+    {
+     "name": "explode",
+     "optional": true,
+     "type": "number",
+     "doc": "Gap pushed between slices. Default 0.03."
+    },
+    {
+     "name": "showLabels",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Ribbon3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'ribbon'",
+     "doc": ""
+    },
+    {
+     "name": "x",
+     "optional": false,
+     "type": "(number | string)[]",
+     "doc": "Shared x positions (numbers) or categories."
+    },
+    {
+     "name": "series",
+     "optional": false,
+     "type": "{ label: string; color?: string; data: number[] }[]",
+     "doc": ""
+    },
+    {
+     "name": "variant",
+     "optional": true,
+     "type": "'ribbon' | 'wall'",
+     "doc": "Flat bands, walls down to the floor (ridgeline), or both."
+    },
+    {
+     "name": "width",
+     "optional": true,
+     "type": "number",
+     "doc": "Band width as a fraction of the row spacing. Default 0.55."
+    }
+   ]
+  },
+  {
+   "name": "Globe3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'globe'",
+     "doc": ""
+    },
+    {
+     "name": "points",
+     "optional": true,
+     "type": "{ lat: number; lon: number; value?: number; label?: string; color?: string }[]",
+     "doc": ""
+    },
+    {
+     "name": "arcs",
+     "optional": true,
+     "type": "{ from: [number, number]; to: [number, number]; value?: number; color?: string; label?: string }[]",
+     "doc": ""
+    },
+    {
+     "name": "outlines",
+     "optional": true,
+     "type": "{ features: { geometry: GeoGeometry | null }[] }",
+     "doc": "GeoJSON features whose outlines are drawn on the globe (land, borders)."
+    },
+    {
+     "name": "spikes",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Draw values as spikes rising from the surface instead of dots."
+    },
+    {
+     "name": "oceanColor",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "landColor",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Network3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'network'",
+     "doc": ""
+    },
+    {
+     "name": "nodes",
+     "optional": false,
+     "type": "{ id: string; label?: string; group?: string; size?: number }[]",
+     "doc": ""
+    },
+    {
+     "name": "links",
+     "optional": false,
+     "type": "{ source: string; target: string; value?: number }[]",
+     "doc": ""
+    },
+    {
+     "name": "iterations",
+     "optional": true,
+     "type": "number",
+     "doc": "Force-layout iterations. Default 300."
+    }
+   ]
+  },
+  {
+   "name": "VectorField3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'vectorField'",
+     "doc": ""
+    },
+    {
+     "name": "vectors",
+     "optional": false,
+     "type": "{ x: number; y: number; z: number; u: number; v: number; w: number }[]",
+     "doc": ""
+    },
+    {
+     "name": "sequentialScheme",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "arrowScale",
+     "optional": true,
+     "type": "number",
+     "doc": "Arrow length multiplier. Default 1."
+    }
+   ]
+  },
+  {
+   "name": "Histogram3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'histogram'",
+     "doc": ""
+    },
+    {
+     "name": "points",
+     "optional": false,
+     "type": "{ x: number; z: number }[]",
+     "doc": ""
+    },
+    {
+     "name": "bins",
+     "optional": true,
+     "type": "number | [number, number]",
+     "doc": "Bins per axis. Default 16."
+    },
+    {
+     "name": "sequentialScheme",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Funnel3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'funnel'",
+     "doc": ""
+    },
+    {
+     "name": "data",
+     "optional": false,
+     "type": "{ label: string; value: number; color?: string }[]",
+     "doc": ""
+    },
+    {
+     "name": "shape",
+     "optional": true,
+     "type": "'cone' | 'pyramid'",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Treemap3DNode",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "name",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "value",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "Treemap3DNode[]",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Treemap3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'treemap'",
+     "doc": ""
+    },
+    {
+     "name": "root",
+     "optional": false,
+     "type": "Treemap3DNode",
+     "doc": ""
+    },
+    {
+     "name": "heightBy",
+     "optional": true,
+     "type": "'value' | 'depth'",
+     "doc": "Tile height from the value or from the depth in the tree. Default 'value'."
+    }
+   ]
+  },
+  {
+   "name": "Map3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'map'",
+     "doc": ""
+    },
+    {
+     "name": "features",
+     "optional": false,
+     "type": "{ type?: string; features: { id?: string | number; properties?: Record<string, unknown> | null; geometry: GeoGeometry | null }[] }",
+     "doc": "GeoJSON FeatureCollection (polygons / multipolygons)."
+    },
+    {
+     "name": "values",
+     "optional": false,
+     "type": "Record<string, number>",
+     "doc": "Value per feature id / name (see `nameKey`)."
+    },
+    {
+     "name": "nameKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Property used as the feature name. Default 'name'."
+    },
+    {
+     "name": "projection",
+     "optional": true,
+     "type": "'equalEarth' | 'mercator'",
+     "doc": ""
+    },
+    {
+     "name": "sequentialScheme",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "maxHeight",
+     "optional": true,
+     "type": "number",
+     "doc": "Max extrusion height. Default 0.24."
+    }
+   ]
+  },
+  {
+   "name": "Trajectory3DOptions",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "type",
+     "optional": false,
+     "type": "'trajectory'",
+     "doc": ""
+    },
+    {
+     "name": "series",
+     "optional": false,
+     "type": "{ label: string; color?: string; points: { x: number; y: number; z: number }[] }[]",
+     "doc": ""
+    },
+    {
+     "name": "tubeRadius",
+     "optional": true,
+     "type": "number",
+     "doc": "Tube radius in world units (0 draws thin lines). Default 0.012."
+    }
+   ]
+  },
+  {
+   "name": "HoverItem",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "key",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "pos",
+     "optional": false,
+     "type": "Vec3",
+     "doc": ""
+    },
+    {
+     "name": "info",
+     "optional": false,
+     "type": "{ seriesIndex: number; dataIndex: number; label: string; color: string; rows: { label: string; value: string; color?: string }[]; hlIndex?: number }",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "Parts3D",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "frame",
+     "optional": false,
+     "type": "'box' | 'none'",
+     "doc": "'box': grid walls and tick labels; 'none': free-standing scene."
+    },
+    {
+     "name": "scales",
+     "optional": true,
+     "type": "{ x: ChartScale | null; y: ChartScale | null; z: ChartScale | null }",
+     "doc": ""
+    },
+    {
+     "name": "boxes",
+     "optional": true,
+     "type": "MarkItem<BoxAttrs>[]",
+     "doc": ""
+    },
+    {
+     "name": "sprites",
+     "optional": true,
+     "type": "MarkItem<SpriteAttrs>[]",
+     "doc": ""
+    },
+    {
+     "name": "meshes",
+     "optional": true,
+     "type": "MeshPart[]",
+     "doc": ""
+    },
+    {
+     "name": "lines",
+     "optional": true,
+     "type": "{ segs: number[]; colors: number[] }",
+     "doc": ""
+    },
+    {
+     "name": "items",
+     "optional": false,
+     "type": "HoverItem[]",
+     "doc": ""
+    },
+    {
+     "name": "labels",
+     "optional": true,
+     "type": "Label3D[]",
+     "doc": ""
+    },
+    {
+     "name": "picking",
+     "optional": true,
+     "type": "'gpu' | 'cpu'",
+     "doc": "Hover resolution: GPU id picking or nearest projected point."
+    }
+   ]
+  },
+  {
+   "name": "Env",
+   "package": "3d",
+   "file": "packages/three-d/src/layouts3d.ts",
+   "doc": "",
+   "props": [
+    {
+     "name": "scheme",
+     "optional": false,
+     "type": "'light' | 'dark'",
+     "doc": ""
+    },
+    {
+     "name": "palette",
+     "optional": false,
+     "type": "string[]",
+     "doc": ""
+    },
+    {
+     "name": "fv",
+     "optional": false,
+     "type": "(v: number) => string",
+     "doc": ""
+    },
+    {
+     "name": "center",
+     "optional": false,
+     "type": "Vec3",
+     "doc": "World-space center of free-standing scenes (camera target)."
+    }
+   ]
+  }
+ ]
+}

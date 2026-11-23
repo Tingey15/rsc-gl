@@ -1,0 +1,14 @@
+{
+  "name": "@rsc-gl/codemod",
+  "version": "0.1.0",
+  "description": "Migrates declarative chart code to @rsc-gl/react: rewrites imports and removes renderer-specific props.",
+  "type": "module",
+  "bin": { "rsc-gl-migrate": "./dist/cli.js" },
+  "main": "./dist/transform.js",
+  "types": "./dist/transform.d.ts",
+  "exports": {
+    ".": { "types": "./dist/transform.d.ts", "@rsc-gl/source": "./src/transform.ts", "default": "./dist/transform.js" }
+  },
+  "files": ["dist", "src"],
+  "scripts": { "build": "tsc -b" }
+}

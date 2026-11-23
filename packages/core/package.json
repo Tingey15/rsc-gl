@@ -1,0 +1,60 @@
+{
+  "name": "@rsc-gl/core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic GPU charting engine (WebGPU + WebGL2).",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "@rsc-gl/source": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./series/*": {
+      "types": "./dist/series/*.d.ts",
+      "@rsc-gl/source": "./src/series/*.ts",
+      "default": "./dist/series/*.js"
+    },
+    "./components/*": {
+      "types": "./dist/components/*.d.ts",
+      "@rsc-gl/source": "./src/components/*.ts",
+      "default": "./dist/components/*.js"
+    },
+    "./marks/*": {
+      "types": "./dist/marks/*.d.ts",
+      "@rsc-gl/source": "./src/marks/*.ts",
+      "default": "./dist/marks/*.js"
+    },
+    "./plugins/*": {
+      "types": "./dist/plugins/*.d.ts",
+      "@rsc-gl/source": "./src/plugins/*.ts",
+      "default": "./dist/plugins/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@rsc-gl/gpu": "0.1.0",
+    "d3-array": "^3.2.5",
+    "d3-chord": "^3.0.2",
+    "d3-color": "^3.1.1",
+    "d3-format": "^3.1.3",
+    "d3-geo": "^3.1.2",
+    "d3-hierarchy": "^3.1.3",
+    "d3-interpolate": "^3.0.2",
+    "d3-sankey": "^0.12.3",
+    "d3-scale": "^4.0.3",
+    "d3-scale-chromatic": "^3.1.1",
+    "d3-shape": "^3.2.1",
+    "d3-time": "^3.1.1",
+    "d3-time-format": "^4.1.1",
+    "earcut": "^3.2.4"
+  }
+}

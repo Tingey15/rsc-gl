@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+coverage/
+.DS_Store
+
+# Internal planning notes (kept local)
+PLAN.md
+
+# Local editor / assistant tooling
+.claude/
