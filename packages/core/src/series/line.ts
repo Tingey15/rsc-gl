@@ -12,6 +12,7 @@ import { sampleIndices } from '../data/sampling';
 import { formatSeriesValue } from './format-value';
 import { normalizeGroups, stackSeries, toNumber, toResolvedSeries, uniqueValues } from './normalize';
 import type { HitResult, LayoutContext, ResolvedSeries, SeriesDefinition, SeriesRenderer } from './types';
+import { minOf, maxOf } from '../data/extent';
 
 type PathSeries = ResolvedSeries<LineSeriesOptions | AreaSeriesOptions>;
 /** Union of line + area options for code paths shared by both. */
@@ -84,32 +85,80 @@ class PathRenderer implements SeriesRenderer {
       const bandOffset = xa.scale.bandwidth() / 2;
       const yDomain = ya.scale.domain().map(Number);
       const baselineValue =
-        o.baseline === 'min' ? Math.min(...yDomain) : o.baseline === 'max' ? Math.max(...yDomain) : typeof o.baseline === 'number' ? o.baseline : Math.min(Math.max(0, Math.min(...yDomain)), Math.max(...yDomain));
+        o.baseline === 'min' ? minOf(yDomain) : o.baseline === 'max' ? maxOf(yDomain) : typeof o.baseline === 'number' ? o.baseline : Math.min(Math.max(0, minOf(yDomain)), maxOf(yDomain));
 
-      let px: PxPoint[] = s.points.map((p) => {
+      // Screen positions go into typed arrays; point objects are only made for the
+      // points that are drawn (after sampling), so million-point series stay cheap.
+      const pts = s.points;
+      const n = pts.length;
+      const sx = new Float64Array(n);
+      const sy = new Float64Array(n);
+      const sy0 = new Float64Array(n);
+      const def = new Uint8Array(n);
+      const stackedBottom = !!(s.stack || o.metricStart);
+      const baseY = ya.scale.map(baselineValue);
+      let allDefined = true;
+      let sorted = true;
+      let prevX = -Infinity;
+      for (let i = 0; i < n; i++) {
+        const p = pts[i];
         const top = p.y1 ?? p.y;
-        const bottom = p.y0 ?? baselineValue;
-        return {
-          x: xa.scale.map(p.x) + bandOffset,
-          y: top === null || top === undefined ? Number.NaN : ya.scale.map(top),
-          y0: ya.scale.map(s.stack || o.metricStart ? bottom : baselineValue),
-          index: p.index,
-          defined: top !== null && top !== undefined && Number.isFinite(xa.scale.map(p.x)),
-          value: p.y,
-        };
-      });
-      if (!isOrdinal(xa.scaleType)) px.sort((a, b) => a.x - b.x);
-      if ((o as LineSeriesOptions).connectNulls) px = px.filter((p) => p.defined);
+        const x = xa.scale.map(p.x) + bandOffset;
+        const ok = top !== null && top !== undefined && Number.isFinite(x);
+        sx[i] = x;
+        sy[i] = ok ? ya.scale.map(top as number) : Number.NaN;
+        sy0[i] = stackedBottom ? ya.scale.map(p.y0 ?? baselineValue) : baseY;
+        def[i] = ok ? 1 : 0;
+        if (!ok) allDefined = false;
+        if (Number.isFinite(x)) {
+          if (x < prevX) sorted = false;
+          prevX = x;
+        }
+      }
+      // Visit order: by x for continuous axes (skipped when the data is already ordered).
+      let order: ArrayLike<number> | null = null;
+      if (!isOrdinal(xa.scaleType) && !sorted) {
+        const idx = new Uint32Array(n);
+        for (let i = 0; i < n; i++) idx[i] = i;
+        order = idx.sort((i, j) => sx[i] - sx[j]);
+      }
+      if ((o as LineSeriesOptions).connectNulls && !allDefined) {
+        const kept: number[] = [];
+        for (let k = 0; k < n; k++) {
+          const i = order ? order[k] : k;
+          if (def[i]) kept.push(i);
+        }
+        order = kept;
+        allDefined = true;
+      }
+      const count = order ? order.length : n;
+      const at = (k: number) => (order ? order[k] : k);
       // Downsample dense series to what the plot can show (keeps peaks with min-max).
+      let chosen: ArrayLike<number> | null = null;
       const sampling = o.sampling ?? 'auto';
-      if (sampling !== 'none' && px.length > 64 && px.every((p) => p.defined)) {
-        const idx = sampleIndices(
-          px.map((p) => p.x),
-          px.map((p) => p.y),
-          sampling,
-          ctx.plot.width,
-        );
-        if (idx) px = idx.map((i) => px[i]);
+      if (sampling !== 'none' && count > 64 && allDefined) {
+        let xs: ArrayLike<number> = sx;
+        let ys: ArrayLike<number> = sy;
+        if (order) {
+          const ox = new Float64Array(count);
+          const oy = new Float64Array(count);
+          for (let k = 0; k < count; k++) {
+            ox[k] = sx[order[k]];
+            oy[k] = sy[order[k]];
+          }
+          xs = ox;
+          ys = oy;
+        }
+        chosen = sampleIndices(xs, ys, sampling, ctx.plot.width);
+      }
+      const make = (i: number): PxPoint => ({ x: sx[i], y: sy[i], y0: sy0[i], index: pts[i].index, defined: def[i] === 1, value: pts[i].y });
+      let px: PxPoint[];
+      if (chosen) {
+        px = new Array(chosen.length);
+        for (let k = 0; k < chosen.length; k++) px[k] = make(at(chosen[k]));
+      } else {
+        px = new Array(count);
+        for (let k = 0; k < count; k++) px[k] = make(at(k));
       }
       geom.exiting = s.hidden;
       if (s.hidden) {
@@ -443,7 +492,9 @@ function pathRequirements(series: PathSeries[]) {
   }
   const isTime = series.some((s) => s.options.dimension === 'datetime');
   return {
-    x: { values: uniqueValues(xs), preferredType: anyString ? ('point' as const) : isTime ? ('time' as const) : allNumeric ? ('linear' as const) : ('point' as const) },
+    // Numeric x only needs an extent (category axes dedupe on their own), so skip the
+    // per-value string dedupe that dominates million-point layouts.
+    x: { values: allNumeric ? xs : uniqueValues(xs), preferredType: anyString ? ('point' as const) : isTime ? ('time' as const) : allNumeric ? ('linear' as const) : ('point' as const) },
     y: { values: ys, preferredType: 'linear' as const, includeZero: anyArea },
   };
 }

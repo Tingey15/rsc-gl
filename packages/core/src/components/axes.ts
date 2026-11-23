@@ -4,6 +4,7 @@ import type { AxisRequirement, Rect, ResolvedAxis, ResolvedSeries, SeriesDefinit
 import type { ChartTheme } from '../theme/theme';
 import type { AxisOptions, Datum, Margin } from '../types';
 import { ANNOTATION_LANE as LANE, drawAnnotations, drawGroups, drawThumb, groupRuns } from './axis-extras';
+import { maxOf } from '../data/extent';
 
 export interface AxisTick {
   value: DomainValue;
@@ -53,6 +54,8 @@ const DEFAULT_PAD = 8;
 
 function mergeRequirements(reqs: AxisRequirement[]): AxisRequirement | null {
   if (reqs.length === 0) return null;
+  // One series: use its values as they are (no copy of large arrays).
+  if (reqs.length === 1) return { ...reqs[0], includeZero: !!reqs[0].includeZero, requiresBand: !!reqs[0].requiresBand, preferredType: reqs[0].requiresBand ? 'band' : reqs[0].preferredType };
   const values: DomainValue[] = [];
   let preferred: ScaleType = reqs[0].preferredType;
   let includeZero = false;
@@ -98,9 +101,24 @@ export function collectRequirements(defs: Map<string, SeriesDefinition>, series:
   return { x, y };
 }
 
+const categoryCache = new WeakMap<ReadonlyArray<unknown>, DomainValue[]>();
+
 export function axisCategories(axis: AxisOptions | undefined, dataset: ReadonlyArray<Datum> | undefined): DomainValue[] | undefined {
   if (!axis) return undefined;
-  if (axis.data) return [...axis.data].map((v) => (v instanceof Date ? v.getTime() : v));
+  if (axis.data) {
+    // Normalized once per data array (layouts call this several times per update).
+    let out = categoryCache.get(axis.data);
+    if (!out) {
+      const src = axis.data;
+      out = new Array(src.length);
+      for (let i = 0; i < src.length; i++) {
+        const v = src[i];
+        out[i] = v instanceof Date ? v.getTime() : v;
+      }
+      categoryCache.set(axis.data, out);
+    }
+    return out;
+  }
   if (axis.dataKey && dataset) return dataset.map((d) => {
     const v = d[axis.dataKey!];
     return v instanceof Date ? v.getTime() : (v as DomainValue);
@@ -173,11 +191,23 @@ function buildSeed(direction: 'x' | 'y', id: string, o: AxisOptions, reqs: AxisR
   if (isOrdinal(scaleType)) {
     domain = cats ?? uniqueStr(merged?.values ?? []);
   } else {
-    const vals = (merged?.values ?? cats ?? []).map((v) => (typeof v === 'string' ? (isTimeScale(scaleType) ? Date.parse(v) : Number(v)) : Number(v))).filter(Number.isFinite);
-    if (merged?.includeZero) vals.push(0);
-    if (vals.length === 0) vals.push(0, 1);
+    // Continuous scales only need the extent: reduce in one pass instead of copying every value.
+    const src = merged?.values ?? cats ?? [];
+    const time = isTimeScale(scaleType);
+    const log = scaleType === 'log';
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (let k = 0; k < src.length; k++) {
+      const v = src[k];
+      const num = typeof v === 'string' ? (time ? Date.parse(v) : Number(v)) : Number(v);
+      if (!Number.isFinite(num) || (log && num <= 0)) continue;
+      if (num < lo) lo = num;
+      if (num > hi) hi = num;
+    }
+    const vals: number[] = lo <= hi ? (lo === hi ? [lo] : [lo, hi]) : [];
+    if (merged?.includeZero && !log) vals.push(0);
+    if (vals.length === 0) vals.push(log ? 1 : 0, log ? 10 : 1);
     domain = vals;
-    if (scaleType === 'log') domain = vals.filter((v) => v > 0);
   }
   if (!o.scaleType && merged?.preferredType === 'time') scaleType = 'time';
   const defaultPos = direction === 'x' ? (i === 0 ? 'bottom' : 'top') : i === 0 ? 'left' : 'right';
@@ -239,7 +269,7 @@ function computeTicks(axis: AxisLayout, length: number, measure: Measure, theme:
   // Thin ordinal labels when they would overlap.
   if (ordinal && axis.direction === 'x' && ticks.length > 1 && !o.tickLabelAngle) {
     const step = Math.abs(s.step()) || 1;
-    const widest = Math.max(...ticks.map((t) => measure(t.label)));
+    const widest = maxOf(ticks.map((t) => measure(t.label)));
     const every = Math.max(1, Math.ceil((widest + 8) / step));
     if (every > 1) {
       // Numeric categories (timestamps) thin by value, so labels stay put while a live window slides.
@@ -362,7 +392,7 @@ export function layoutCartesian(input: CartesianInput): CartesianLayout {
         let h = fh;
         if (o.tickLabelAngle) {
           const ang = (Math.abs(o.tickLabelAngle) * Math.PI) / 180;
-          const w = Math.max(0, ...a.ticks.map((t) => Math.min(o.labelLimit ?? 140, measure(t.label))));
+          const w = Math.max(0, maxOf(a.ticks.map((t) => Math.min(o.labelLimit ?? 140, measure(t.label)))));
           h = w * Math.sin(ang) + fh * Math.cos(ang);
         }
         box.labelBlock = h + (twoRows ? fh : 0);
@@ -371,12 +401,12 @@ export function layoutCartesian(input: CartesianInput): CartesianLayout {
       box.group = c;
       for (let i = 0; i < groups.length; i++) box.groupSizes.push(fh + 10);
     } else {
-      if (!hideText) box.labelBlock = Math.max(0, ...a.ticks.map((t) => Math.min(o.labelLimit ?? 160, measure(t.label)))) + 2;
+      if (!hideText) box.labelBlock = Math.max(0, maxOf(a.ticks.map((t) => Math.min(o.labelLimit ?? 160, measure(t.label))))) + 2;
       c += box.labelBlock;
       box.group = c;
       for (const level of groups) {
         const names = groupRuns(a, level).map((r) => r.label);
-        box.groupSizes.push(Math.max(0, ...names.map((n) => measure(n))) + 14);
+        box.groupSizes.push(Math.max(0, maxOf(names.map((n) => measure(n)))) + 14);
       }
     }
     c += box.groupSizes.reduce((x, y) => x + y, 0);
@@ -464,10 +494,20 @@ export function drawAxes(g: CanvasRenderingContext2D, layout: CartesianLayout, t
       g.textBaseline = bottom ? 'top' : 'bottom';
       const box = a.box;
       const ts = o.thumbnails ? (o.thumbnails.size ?? 24) : 0;
+      if (tick) {
+        // Opaque ticks share one path (thousands of category ticks cost one stroke).
+        g.beginPath();
+        for (const t of a.ticks) {
+          if (t.pos < plot.x - 1 || t.pos > plot.x + plot.width + 1 || (t.alpha ?? 1) < 1) continue;
+          g.moveTo(Math.round(t.pos) + 0.5, y0);
+          g.lineTo(Math.round(t.pos) + 0.5, y0 + dir * tick);
+        }
+        g.stroke();
+      }
       a.ticks.forEach((t, ti) => {
         if (t.pos < plot.x - 1 || t.pos > plot.x + plot.width + 1) return;
         g.globalAlpha = t.alpha ?? 1;
-        if (tick) {
+        if (tick && (t.alpha ?? 1) < 1) {
           g.beginPath();
           g.moveTo(Math.round(t.pos) + 0.5, y0);
           g.lineTo(Math.round(t.pos) + 0.5, y0 + dir * tick);
@@ -520,10 +560,19 @@ export function drawAxes(g: CanvasRenderingContext2D, layout: CartesianLayout, t
       g.textBaseline = 'middle';
       const box = a.box;
       const ts = o.thumbnails ? (o.thumbnails.size ?? 24) : 0;
+      if (tick) {
+        g.beginPath();
+        for (const t of a.ticks) {
+          if (t.pos < plot.y - 1 || t.pos > plot.y + plot.height + 1 || (t.alpha ?? 1) < 1) continue;
+          g.moveTo(x0, Math.round(t.pos) + 0.5);
+          g.lineTo(x0 + dir * tick, Math.round(t.pos) + 0.5);
+        }
+        g.stroke();
+      }
       a.ticks.forEach((t, ti) => {
         if (t.pos < plot.y - 1 || t.pos > plot.y + plot.height + 1) return;
         g.globalAlpha = t.alpha ?? 1;
-        if (tick) {
+        if (tick && (t.alpha ?? 1) < 1) {
           g.beginPath();
           g.moveTo(x0, Math.round(t.pos) + 0.5);
           g.lineTo(x0 + dir * tick, Math.round(t.pos) + 0.5);

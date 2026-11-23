@@ -7,6 +7,7 @@ import { formatSeriesValue } from './format-value';
 import { GeomRenderer, type GeomHit, type GeomLabel, type GeomLine, type GeomOutput } from './geom-renderer';
 import { toNumber, toResolvedSeries } from './normalize';
 import type { LayoutContext, ResolvedSeries, SeriesDefinition, SeriesPoint } from './types';
+import { minOf, maxOf } from '../data/extent';
 
 export interface RadialLineSeriesOptions extends BaseSeriesOptions {
   type: 'radialLine';
@@ -98,7 +99,7 @@ class RadialLineRenderer extends GeomRenderer {
     const categorical = series[0].points.some((p) => typeof p.x === 'string');
     const cats = categorical ? [...new Set(series.flatMap((s) => s.points.map((p) => String(p.x))))] : [];
     const nums = categorical ? [] : series.flatMap((s) => s.points.map((p) => (p.x instanceof Date ? p.x.getTime() : Number(p.x))));
-    const dom: [number, number] = o0.angleDomain ?? [Math.min(...nums), Math.max(...nums) + (full && nums.length > 1 ? (Math.max(...nums) - Math.min(...nums)) / (new Set(nums).size - 1 || 1) : 0)];
+    const dom: [number, number] = o0.angleDomain ?? [minOf(nums), maxOf(nums) + (full && nums.length > 1 ? (maxOf(nums) - minOf(nums)) / (new Set(nums).size - 1 || 1) : 0)];
     const angleOf = (x: unknown) => {
       if (categorical) {
         const i = cats.indexOf(String(x));
@@ -109,8 +110,8 @@ class RadialLineRenderer extends GeomRenderer {
       return a0 + ((a1 - a0) * (v - dom[0])) / (dom[1] - dom[0] || 1);
     };
     const values = series.flatMap((s) => s.points.map((p) => p.y).filter((v): v is number => v !== null));
-    const vmax = o0.radiusDomain?.[1] ?? Math.max(1e-9, ...values);
-    const vmin = o0.radiusDomain?.[0] ?? Math.min(0, ...values);
+    const vmax = o0.radiusDomain?.[1] ?? Math.max(1e-9, maxOf(values));
+    const vmin = o0.radiusDomain?.[0] ?? Math.min(0, minOf(values));
     const step = niceStep(vmax - vmin, o0.divisions ?? 4);
     const top = o0.radiusDomain ? vmax : Math.ceil(vmax / step) * step;
     const rOf = (v: number) => r0 + ((R - r0) * (v - vmin)) / (top - vmin || 1);
@@ -158,7 +159,7 @@ class RadialLineRenderer extends GeomRenderer {
     for (const s of series) {
       const o = s.options;
       // Continuous data that wraps all the way around closes too.
-      const covers = !categorical && full && nums.length > 1 && (Math.max(...nums) - Math.min(...nums)) / (dom[1] - dom[0] || 1) > 0.9;
+      const covers = !categorical && full && nums.length > 1 && (maxOf(nums) - minOf(nums)) / (dom[1] - dom[0] || 1) > 0.9;
       const closed = o.closed ?? ((categorical && full) || covers);
       const pts = s.points
         .filter((p) => p.y !== null)

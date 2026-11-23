@@ -13,6 +13,7 @@ import {
   type ScalePoint,
   type ScaleTime,
 } from 'd3-scale';
+import { minOf, maxOf } from '../data/extent';
 
 export type ScaleType = 'band' | 'point' | 'linear' | 'log' | 'symlog' | 'pow' | 'sqrt' | 'time' | 'utc';
 export type DomainValue = number | string | Date;
@@ -105,8 +106,8 @@ export function createScale(o: ScaleOptions): ChartScale {
       s = scaleLinear();
   }
   const nums = o.domain.map((v) => (v instanceof Date ? v.getTime() : Number(v))).filter(Number.isFinite);
-  let lo = nums.length ? Math.min(...nums) : 0;
-  let hi = nums.length ? Math.max(...nums) : 1;
+  let lo = nums.length ? minOf(nums) : 0;
+  let hi = nums.length ? maxOf(nums) : 1;
   if (o.min !== undefined) lo = +o.min;
   if (o.max !== undefined) hi = +o.max;
   if (lo === hi) {

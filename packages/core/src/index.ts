@@ -61,3 +61,4 @@ export { WorkerChart, type WorkerChartOptions } from './worker/host';
 export { cloneable } from './worker/protocol';
 export { buildScene, type Scene, type SceneInput } from './chart/scene';
 export { hydrateChart, withoutEntrance } from './svg/hydrate';
+export { minOf, maxOf, appendAll } from './data/extent';

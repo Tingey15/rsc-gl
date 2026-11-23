@@ -13,6 +13,9 @@ export interface Scenario {
 }
 
 export const SCENARIOS: Scenario[] = [
+  { id: 'bar-12', kind: 'bar', label: 'Bars · 12 categories', n: 12 },
+  { id: 'line-100', kind: 'line', label: 'Line · 100 points', n: 100 },
+  { id: 'scatter-200', kind: 'scatter', label: 'Scatter · 200 points', n: 200 },
   { id: 'scatter-1k', kind: 'scatter', label: 'Scatter · 1,000 points', n: 1_000 },
   { id: 'scatter-10k', kind: 'scatter', label: 'Scatter · 10,000 points', n: 10_000 },
   { id: 'scatter-100k', kind: 'scatter', label: 'Scatter · 100,000 points', n: 100_000, heavy: true },
@@ -24,6 +27,7 @@ export const SCENARIOS: Scenario[] = [
   { id: 'bar-5k', kind: 'bar', label: 'Bars · 5,000 categories', n: 5_000 },
   { id: 'stream-2k', kind: 'stream', label: 'Live line · 2,000 points, 30 updates/s', n: 2_000 },
   { id: 'many-24', kind: 'many', label: 'Dashboard · 24 charts × 2,000 points', n: 2_000, charts: 24 },
+  { id: 'many-100', kind: 'many', label: 'Dashboard · 100 charts × 500 points', n: 500, charts: 100 },
 ];
 
 /** Deterministic pseudo-random generator so both libraries get identical data. */

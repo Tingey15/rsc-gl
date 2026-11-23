@@ -6,6 +6,7 @@ import { formatSeriesValue } from './format-value';
 import { GeomRenderer, type GeomHit, type GeomLabel, type GeomOutput } from './geom-renderer';
 import { normalizeGroups } from './normalize';
 import type { LayoutContext, LegendEntry, ResolvedSeries, SeriesDefinition, SeriesPoint } from './types';
+import { maxOf } from '../data/extent';
 
 export interface MorphSeriesOptions extends BaseSeriesOptions {
   type: 'morph';
@@ -42,7 +43,7 @@ class MorphRenderer extends GeomRenderer {
       const n = pts.length;
       if (!n) continue;
       const pl = ctx.plot;
-      const max = Math.max(...pts.map((p) => p.y ?? 0)) || 1;
+      const max = maxOf(pts.map((p) => p.y ?? 0)) || 1;
       const total = pts.reduce((a, p) => a + (p.y ?? 0), 0) || 1;
       const cx = pl.x + pl.width / 2;
       const cy = pl.y + pl.height / 2;

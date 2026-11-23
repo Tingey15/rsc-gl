@@ -129,6 +129,12 @@ export class Chart implements Renderable {
   /** Tick label transitions: each tick slides from its old to its new position. */
   private tickAnim: { start: number; t: TransitionOptions; axes: Map<string, { tick: AxisTick; from: number; to: number; a0: number; a1: number }[]> } | null = null;
   private activeTransition: TransitionOptions = { duration: 0, easing: 'linear', stagger: 0 };
+  /** Options that affect HTML chrome (title, legend layout, theme); data updates leave it alone. */
+  private chromeKey = '';
+  private chromeDirty = true;
+  /** Text widths by font, reused across layouts (category axes can have thousands of labels). */
+  private textWidths = new Map<string, number>();
+  private textFont = '';
   private transitionEnd = 0;
 
   constructor(container: HTMLElement, options: ChartOptions, config: ChartConfig) {
@@ -219,7 +225,7 @@ export class Chart implements Renderable {
   setOptions(options: ChartOptions): void {
     const prev = this.options;
     this.options = options;
-    this.applyChrome();
+    this.applyChrome(false);
     if (options.highlightedItem !== undefined && options.highlightedItem !== prev.highlightedItem) this.applyControlledHighlight();
     this.relayout(true);
   }
@@ -515,8 +521,12 @@ export class Chart implements Renderable {
     return typeof t === 'object' ? t : {};
   }
 
-  private applyChrome(): void {
+  private applyChrome(force = true): void {
     const o = this.options;
+    const key = JSON.stringify([o.colorScheme, o.theme, o.locale, o.backgroundColor, o.title, o.legend, o.loading, o.loadingText]);
+    if (!force && key === this.chromeKey) return;
+    this.chromeKey = key;
+    this.chromeDirty = true;
     this.theme = getTheme(o.colorScheme ?? 'light', o.theme);
     this.formatter = getFormatter(o.locale);
     const t = this.theme;
@@ -643,17 +653,34 @@ export class Chart implements Renderable {
     // The legend (and title) take space from the plot. Fill them in first and
     // re-measure synchronously; otherwise the resulting resize would re-run
     // layout without animation and cut the entrance short.
-    this.legend.update(this.legendEntries, this.legendOptions(), this.hidden);
-    const pr = this.plotEl.getBoundingClientRect();
-    if (pr.width > 0 && pr.height > 0) {
-      this.width = pr.width;
-      this.height = pr.height;
+    const legendChanged = this.legend.update(this.legendEntries, this.legendOptions(), this.hidden);
+    // Reading layout forces a synchronous reflow: only do it when the chrome around the plot changed.
+    if (legendChanged || this.chromeDirty || this.firstRender) {
+      const pr = this.plotEl.getBoundingClientRect();
+      if (pr.width > 0 && pr.height > 0) {
+        this.width = pr.width;
+        this.height = pr.height;
+      }
+      this.chromeDirty = false;
     }
 
     // Layout.
     const measureCtx = this.overlay.getContext('2d')!;
-    measureCtx.font = `${this.theme.fontSize}px ${this.theme.fontFamily}`;
-    const measure = (t: string) => measureCtx.measureText(t).width;
+    const font = `${this.theme.fontSize}px ${this.theme.fontFamily}`;
+    measureCtx.font = font;
+    if (font !== this.textFont || this.textWidths.size > 50_000) {
+      this.textWidths.clear();
+      this.textFont = font;
+    }
+    const widths = this.textWidths;
+    const measure = (t: string) => {
+      let w = widths.get(t);
+      if (w === undefined) {
+        w = measureCtx.measureText(t).width;
+        widths.set(t, w);
+      }
+      return w;
+    };
     const hasCartesian = all.some((s) => this.defs.get(s.type)?.coordinates === 'cartesian');
     let plot: Rect;
     const reserve = this.plugins.reduce((acc, p) => acc + (p.reserveBottom?.(this) ?? 0), 0);
@@ -840,14 +867,14 @@ export class Chart implements Renderable {
 
   private updateDescription(): void {
     const o = this.options;
-    if (o.description) {
-      this.root.setAttribute('aria-label', o.description);
-      return;
-    }
+    const set = (label: string) => {
+      if (this.root.getAttribute('aria-label') !== label) this.root.setAttribute('aria-label', label);
+    };
+    if (o.description) return set(o.description);
     const types = [...new Set(this.series.map((s) => s.type))].join(' and ');
     const names = this.series.filter((s) => !s.hidden).map((s) => s.label);
     const title = typeof o.title === 'string' ? o.title : o.title?.text;
-    this.root.setAttribute('aria-label', `${title ? `${title}. ` : ''}${types} chart with ${names.length} series${names.length ? `: ${names.slice(0, 8).join(', ')}` : ''}.`);
+    set(`${title ? `${title}. ` : ''}${types} chart with ${names.length} series${names.length ? `: ${names.slice(0, 8).join(', ')}` : ''}.`);
   }
 
   /* ------------------------------------------------------------------ rendering */

@@ -10,6 +10,7 @@ import { resolveColor, rgbaToCss, withAlpha } from '../theme/colors';
 import { resolveLineType } from '../theme/theme';
 import type { PointAnnotationOptions, ScatterLabelOptions, ScatterPathOptions, TrendlineOptions } from '../types';
 import { contrastText } from '../theme/colors';
+import { minOf, maxOf } from '../data/extent';
 
 interface Callout {
   px: number;
@@ -235,8 +236,8 @@ export function annotationsPlugin(options: AnnotationsPluginOptions = {}): Chart
         if (fit.points) path = fit.points;
         else if (fit.at && pts.length) {
           const dom = xa.scale.domain();
-          const lo = t.extend && !ordinal ? Number(dom[0]) : Math.min(...pts.map((p) => p.x));
-          const hi = t.extend && !ordinal ? Number(dom[dom.length - 1]) : Math.max(...pts.map((p) => p.x));
+          const lo = t.extend && !ordinal ? Number(dom[0]) : minOf(pts.map((p) => p.x));
+          const hi = t.extend && !ordinal ? Number(dom[dom.length - 1]) : maxOf(pts.map((p) => p.x));
           const n = (t.method ?? 'linear') === 'linear' ? 2 : 64;
           path = Array.from({ length: n }, (_, k) => {
             const x = lo + ((hi - lo) * k) / (n - 1);

@@ -26,6 +26,7 @@ export interface StackedBar3DOptions {
 
 import type { BarShape } from './shapes3d';
 import { boxesToMeshes } from './shapes3d';
+import { minOf, maxOf } from '@rsc-gl/core';
 export type { BarShape };
 
 export interface Pie3DOptions {
@@ -244,7 +245,7 @@ function stackedBars(o: StackedBar3DOptions, env: Env): Parts3D {
 
 function pie(o: Pie3DOptions, env: Env): Parts3D {
   const total = o.data.reduce((a, d) => a + Math.max(0, d.value), 0) || 1;
-  const max = Math.max(...o.data.map((d) => d.value), 1e-9);
+  const max = Math.max(maxOf(o.data.map((d) => d.value)), 1e-9);
   // Leaves room around the pie for labels.
   const R = 0.8;
   const r0 = (o.innerRadius ?? 0) * R;
@@ -276,11 +277,11 @@ function pie(o: Pie3DOptions, env: Env): Parts3D {
 function ribbons(o: Ribbon3DOptions, env: Env): Parts3D {
   const numeric = o.x.every((v) => typeof v === 'number');
   const x = numeric
-    ? createScale({ type: 'linear', domain: [Math.min(...(o.x as number[])), Math.max(...(o.x as number[]))], range: [-SIZE_X / 2, SIZE_X / 2], domainLimit: 'strict' })
+    ? createScale({ type: 'linear', domain: [minOf((o.x as number[])), maxOf((o.x as number[]))], range: [-SIZE_X / 2, SIZE_X / 2], domainLimit: 'strict' })
     : createScale({ type: 'point', domain: o.x.map(String), range: [-SIZE_X / 2, SIZE_X / 2] });
   const z = createScale({ type: 'band', domain: o.series.map((s) => s.label), range: [-SIZE_Z / 2, SIZE_Z / 2], paddingInner: 0, paddingOuter: 0 });
   const all = o.series.flatMap((s) => s.data);
-  const y = createScale({ type: 'linear', domain: [Math.min(0, ...all), Math.max(...all)], range: [0, SIZE_Y] });
+  const y = createScale({ type: 'linear', domain: [Math.min(0, minOf(all)), maxOf(all)], range: [0, SIZE_Y] });
   const meshes: MeshPart[] = [];
   const items: HoverItem[] = [];
   const segs: number[] = [];
@@ -350,7 +351,7 @@ function globe(o: Globe3DOptions, env: Env): Parts3D {
   const items: HoverItem[] = [];
   const sprites: MarkItem<SpriteAttrs>[] = [];
   const pts = o.points ?? [];
-  const vmax = Math.max(1e-9, ...pts.map((p) => p.value ?? 1));
+  const vmax = Math.max(1e-9, maxOf(pts.map((p) => p.value ?? 1)));
   pts.forEach((p, i) => {
     const col = rgba(p.color ?? env.palette[0], env.scheme);
     const v = p.value ?? 1;
@@ -482,12 +483,12 @@ function network(o: Network3DOptions, env: Env): Parts3D {
 
 function vectorField(o: VectorField3DOptions, env: Env): Parts3D {
   const v = o.vectors;
-  const ext = (k: 'x' | 'y' | 'z') => [Math.min(...v.map((p) => p[k])), Math.max(...v.map((p) => p[k]))] as [number, number];
+  const ext = (k: 'x' | 'y' | 'z') => [minOf(v.map((p) => p[k])), maxOf(v.map((p) => p[k]))] as [number, number];
   const x = createScale({ type: 'linear', domain: ext('x'), range: [-SIZE_X / 2, SIZE_X / 2], domainLimit: 'strict' });
   const y = createScale({ type: 'linear', domain: ext('y'), range: [0.05, SIZE_Y], domainLimit: 'strict' });
   const z = createScale({ type: 'linear', domain: ext('z'), range: [-SIZE_Z / 2, SIZE_Z / 2], domainLimit: 'strict' });
   const mags = v.map((p) => Math.hypot(p.u, p.v, p.w));
-  const mmax = Math.max(1e-9, ...mags);
+  const mmax = Math.max(1e-9, maxOf(mags));
   const spacing = SIZE_X / Math.max(2, Math.cbrt(v.length));
   const seq = getInterpolator(o.sequentialScheme ?? 'turbo') ?? getInterpolator('viridis')!;
   const meshes: MeshPart[] = [];
@@ -514,17 +515,17 @@ function histogram(o: Histogram3DOptions, env: Env): Parts3D {
   const [bx, bz] = Array.isArray(o.bins) ? o.bins : [o.bins ?? 16, o.bins ?? 16];
   const xs = o.points.map((p) => p.x);
   const zs = o.points.map((p) => p.z);
-  const x0 = Math.min(...xs);
-  const x1 = Math.max(...xs);
-  const z0 = Math.min(...zs);
-  const z1 = Math.max(...zs);
+  const x0 = minOf(xs);
+  const x1 = maxOf(xs);
+  const z0 = minOf(zs);
+  const z1 = maxOf(zs);
   const counts = new Array(bx * bz).fill(0);
   for (const p of o.points) {
     const i = Math.min(bx - 1, Math.floor(((p.x - x0) / (x1 - x0 || 1)) * bx));
     const j = Math.min(bz - 1, Math.floor(((p.z - z0) / (z1 - z0 || 1)) * bz));
     counts[j * bx + i]++;
   }
-  const cmax = Math.max(1, ...counts);
+  const cmax = Math.max(1, maxOf(counts));
   const x = createScale({ type: 'linear', domain: [x0, x1], range: [-SIZE_X / 2, SIZE_X / 2], domainLimit: 'strict' });
   const z = createScale({ type: 'linear', domain: [z0, z1], range: [-SIZE_Z / 2, SIZE_Z / 2], domainLimit: 'strict' });
   const y = createScale({ type: 'linear', domain: [0, cmax], range: [0, SIZE_Y] });
@@ -549,7 +550,7 @@ function histogram(o: Histogram3DOptions, env: Env): Parts3D {
 
 function funnel(o: Funnel3DOptions, env: Env): Parts3D {
   const n = o.data.length;
-  const max = Math.max(1e-9, ...o.data.map((d) => d.value));
+  const max = Math.max(1e-9, maxOf(o.data.map((d) => d.value)));
   const H = SIZE_Y * 1.05;
   const step = H / n;
   const c = env.center;
@@ -583,8 +584,8 @@ function treemap3d(o: Treemap3DOptions, env: Env): Parts3D {
   const layout = treemap<Treemap3DNode>().tile(treemapSquarify).size([SIZE_X, SIZE_Z]).paddingInner(0.012).paddingOuter(0.02).paddingTop(0.02).round(false);
   const t = layout(root);
   const leaves = t.leaves();
-  const vmax = Math.max(1e-9, ...leaves.map((l) => l.value ?? 0));
-  const depthMax = Math.max(1, ...leaves.map((l) => l.depth));
+  const vmax = Math.max(1e-9, maxOf(leaves.map((l) => l.value ?? 0)));
+  const depthMax = Math.max(1, maxOf(leaves.map((l) => l.depth)));
   const tops = root.children?.map((c) => c.data.name) ?? [];
   const boxes: MarkItem<BoxAttrs>[] = [];
   const items: HoverItem[] = [];
@@ -614,8 +615,8 @@ function prismMap(o: Map3DOptions, env: Env): Parts3D {
   );
   const values = o.features.features.map((f) => o.values[String(f.properties?.[key] ?? f.id ?? '')]);
   const finite = values.filter((v): v is number => Number.isFinite(v));
-  const vmin = Math.min(...finite);
-  const vmax = Math.max(...finite);
+  const vmin = minOf(finite);
+  const vmax = maxOf(finite);
   const seq = getInterpolator(o.sequentialScheme ?? 'viridis')!;
   const maxH = o.maxHeight ?? 0.24;
   const base = env.center[1] - 0.2;
@@ -676,7 +677,7 @@ function prismMap(o: Map3DOptions, env: Env): Parts3D {
 
 function trajectory(o: Trajectory3DOptions, env: Env): Parts3D {
   const all = o.series.flatMap((s) => s.points);
-  const ext = (k: 'x' | 'y' | 'z') => [Math.min(...all.map((p) => p[k])), Math.max(...all.map((p) => p[k]))] as [number, number];
+  const ext = (k: 'x' | 'y' | 'z') => [minOf(all.map((p) => p[k])), maxOf(all.map((p) => p[k]))] as [number, number];
   const x = createScale({ type: 'linear', domain: ext('x'), range: [-SIZE_X / 2, SIZE_X / 2] });
   const y = createScale({ type: 'linear', domain: ext('y'), range: [0, SIZE_Y] });
   const z = createScale({ type: 'linear', domain: ext('z'), range: [-SIZE_Z / 2, SIZE_Z / 2] });

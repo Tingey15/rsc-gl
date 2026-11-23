@@ -12,6 +12,7 @@ import { formatSeriesValue } from './format-value';
 import { GeomRenderer, type GeomHit, type GeomLabel, type GeomOutput } from './geom-renderer';
 import { toNumber } from './normalize';
 import type { LayoutContext, LegendEntry, NormalizeContext, ResolvedSeries, SeriesDefinition, SeriesPoint } from './types';
+import { minOf, maxOf } from '../data/extent';
 
 const rect = (x: number, y: number, width: number, height: number, color: RGBA, radius = 0): RectAttrs => ({ x, y, width, height, color, radius, corners: 15 });
 
@@ -61,7 +62,7 @@ class FunnelRenderer extends GeomRenderer {
       const len = horizontal ? pl.width : pl.height;
       const breadth = horizontal ? pl.height : pl.width;
       const gap = o.gap ?? 4;
-      const max = Math.max(...pts.map((p) => p.y ?? 0));
+      const max = maxOf(pts.map((p) => p.y ?? 0));
       const total = pts.reduce((a, p) => a + (p.y ?? 0), 0);
       const first = pts[0].y ?? 1;
       const pyramid = o.variant === 'pyramid';
@@ -387,10 +388,10 @@ class VennRenderer extends GeomRenderer {
         pos.push({ x, y });
       }
       // Fit into the plot.
-      const minX = Math.min(...pos.map((p, i) => p.x - r[i]));
-      const maxX = Math.max(...pos.map((p, i) => p.x + r[i]));
-      const minY = Math.min(...pos.map((p, i) => p.y - r[i]));
-      const maxY = Math.max(...pos.map((p, i) => p.y + r[i]));
+      const minX = minOf(pos.map((p, i) => p.x - r[i]));
+      const maxX = maxOf(pos.map((p, i) => p.x + r[i]));
+      const minY = minOf(pos.map((p, i) => p.y - r[i]));
+      const maxY = maxOf(pos.map((p, i) => p.y + r[i]));
       const pl = ctx.plot;
       const k = Math.min((pl.width - 20) / (maxX - minX || 1), (pl.height - 20) / (maxY - minY || 1));
       const ox = pl.x + pl.width / 2 - ((minX + maxX) / 2) * k;

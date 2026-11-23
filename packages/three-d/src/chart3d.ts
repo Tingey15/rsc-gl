@@ -24,6 +24,8 @@ import { BoxMark, Lines3D, SpriteMark, SurfaceMark, TextMark3D, type BoxAttrs, t
 import { MeshMark3D } from './mesh3d';
 import { boxesToMeshes, contourSegments, type BarShape } from './shapes3d';
 import type { ExtraChart3DOptions, Parts3D } from './layouts3d';
+import { minOf, maxOf } from '@rsc-gl/core';
+import { appendAll } from '@rsc-gl/core';
 
 // The newer chart types (globe, map, treemap, ...) live in a separate chunk loaded on first use.
 type ExtraModule = typeof import('./layouts3d');
@@ -379,7 +381,7 @@ export class Chart3D implements Renderable {
       this.surfaceMark!.update(new Float32Array(0), new Float32Array(0), new Float32Array(0), new Uint32Array(0), 0, now, false);
     } else if (o.type === 'scatter') {
       const all = o.series.flatMap((s) => s.data);
-      const ext = (k: 'x' | 'y' | 'z') => [Math.min(...all.map((p) => p[k])), Math.max(...all.map((p) => p[k]))];
+      const ext = (k: 'x' | 'y' | 'z') => [minOf(all.map((p) => p[k])), maxOf(all.map((p) => p[k]))];
       this.xScale = createScale({ type: 'linear', domain: ext('x'), range: [-SIZE_X / 2, SIZE_X / 2], min: o.xAxis?.min, max: o.xAxis?.max });
       this.yScale = createScale({ type: 'linear', domain: ext('y'), range: [0, SIZE_Y], min: o.yAxis?.min, max: o.yAxis?.max });
       this.zScale = createScale({ type: 'linear', domain: ext('z'), range: [-SIZE_Z / 2, SIZE_Z / 2], min: o.zAxis?.min, max: o.zAxis?.max });
@@ -424,8 +426,8 @@ export class Chart3D implements Renderable {
           min = Math.min(min, v);
           max = Math.max(max, v);
         }
-      this.xScale = createScale({ type: 'linear', domain: [Math.min(...xs), Math.max(...xs)], range: [-SIZE_X / 2, SIZE_X / 2], domainLimit: 'strict' });
-      this.zScale = createScale({ type: 'linear', domain: [Math.min(...zs), Math.max(...zs)], range: [-SIZE_Z / 2, SIZE_Z / 2], domainLimit: 'strict' });
+      this.xScale = createScale({ type: 'linear', domain: [minOf(xs), maxOf(xs)], range: [-SIZE_X / 2, SIZE_X / 2], domainLimit: 'strict' });
+      this.zScale = createScale({ type: 'linear', domain: [minOf(zs), maxOf(zs)], range: [-SIZE_Z / 2, SIZE_Z / 2], domainLimit: 'strict' });
       this.yScale = createScale({ type: 'linear', domain: [min, max], range: [0, SIZE_Y], min: o.yAxis?.min, max: o.yAxis?.max });
       const seq = getInterpolator(o.sequentialScheme ?? 'viridis')!;
       const wx = new Float32Array(xs.map((x) => this.xScale!.map(x)));
@@ -466,12 +468,12 @@ export class Chart3D implements Renderable {
         const cc = toPacked(scheme === 'dark' ? '#ffffff' : '#111111', scheme, 0.55);
         const iso = contourSegments(wx, wz, heights, grid, levels);
         for (let i = 0; i < iso.length; i += 6) cols.push(cc);
-        segs.push(...iso);
+        appendAll(segs, iso);
         if (o.floorContours) {
           const fl = contourSegments(wx, wz, heights, grid, levels, 0, true);
           const fc = toPacked(seq(0.55), scheme, 0.9);
           for (let i = 0; i < fl.length; i += 6) cols.push(fc);
-          segs.push(...fl);
+          appendAll(segs, fl);
         }
       }
       if (o.wireframe) {

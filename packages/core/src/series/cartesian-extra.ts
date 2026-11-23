@@ -10,6 +10,7 @@ import { formatSeriesValue } from './format-value';
 import { GeomRenderer, type GeomHit, type GeomLabel, type GeomLine, type GeomOutput } from './geom-renderer';
 import { toDomainValue, toNumber, toResolvedSeries, uniqueValues } from './normalize';
 import type { LayoutContext, LegendEntry, NormalizeContext, ResolvedSeries, SeriesDefinition, SeriesPoint } from './types';
+import { appendAll, minOf, maxOf } from '../data/extent';
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -73,7 +74,7 @@ class HeatmapRenderer extends GeomRenderer {
 function heatColor(s: ResolvedSeries<HeatmapSeriesOptions>): (v: number) => RGBA {
   const o = s.options;
   const vals = s.points.map((p) => p.y).filter((v): v is number => v !== null);
-  const [lo, hi] = o.colorDomain ?? [Math.min(...vals), Math.max(...vals)];
+  const [lo, hi] = o.colorDomain ?? [minOf(vals), maxOf(vals)];
   if (o.thresholds?.length) {
     const sorted = [...o.thresholds].sort((a, b) => a.value - b.value);
     return (v) => resolveColor((sorted.find((t) => v < t.value) ?? sorted[sorted.length - 1]).color);
@@ -117,7 +118,7 @@ export const heatmapSeries: SeriesDefinition<HeatmapSeriesOptions> = {
   legendEntries(series) {
     return series.map((s): LegendEntry => {
       const vals = s.points.map((p) => p.y).filter((v): v is number => v !== null);
-      const [lo, hi] = s.options.colorDomain ?? [Math.min(...vals), Math.max(...vals)];
+      const [lo, hi] = s.options.colorDomain ?? [minOf(vals), maxOf(vals)];
       const c = heatColor(s);
       const stops = Array.from({ length: 7 }, (_, i) => rgbaToCss(c(lo + ((hi - lo) * i) / 6)));
       return { id: s.id, label: s.label, color: stops[3], shape: 'gradient', gradient: stops, min: String(Math.round(lo * 100) / 100), max: String(Math.round(hi * 100) / 100), seriesIndex: s.index };
@@ -149,7 +150,7 @@ class CandlestickRenderer extends GeomRenderer {
       // Volume bars share the x scale and use the bottom of the plot.
       if (o.volume) {
         const vols = s.points.map((p) => toNumber(p.datum?.[o.volume!]) ?? 0);
-        const vmax = Math.max(1e-9, ...vols);
+        const vmax = Math.max(1e-9, maxOf(vols));
         const vh = plot.height * (o.volumeHeight ?? 0.2);
         s.points.forEach((p, i) => {
           const d = p.datum ?? {};
@@ -242,8 +243,8 @@ export const candlestickSeries: SeriesDefinition<CandlestickSeriesOptions> = {
     // Leave the bottom of the plot to the volume bars.
     const f = series.find((s) => s.options.volume)?.options.volumeHeight ?? (series.some((s) => s.options.volume) ? 0.2 : 0);
     if (f > 0 && ys.length) {
-      const lo = Math.min(...ys);
-      const hi = Math.max(...ys);
+      const lo = minOf(ys);
+      const hi = maxOf(ys);
       ys.push(lo - ((hi - lo) * f) / (1 - f));
     }
     return { x: { values: uniqueValues(xs), preferredType: 'band', requiresBand: true }, y: { values: ys, preferredType: 'linear' } };
@@ -509,7 +510,7 @@ export const boxplotSeries: SeriesDefinition<BoxplotSeriesOptions> = {
       const g = groups.get(k)!;
       // Precomputed stats per row are accepted too.
       if (r.q1 !== undefined && r.median !== undefined) g.stats = { min: Number(r.min), q1: Number(r.q1), median: Number(r.median), q3: Number(r.q3), max: Number(r.max), outliers: (r.outliers as number[]) ?? [] };
-      else if (Array.isArray(r[metric])) g.values.push(...(r[metric] as number[]));
+      else if (Array.isArray(r[metric])) appendAll(g.values, r[metric] as number[]);
       else {
         const v = toNumber(r[metric]);
         if (v !== null) g.values.push(v);

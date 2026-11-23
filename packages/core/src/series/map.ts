@@ -16,6 +16,7 @@ import type { MapSeriesOptions } from '../types-extra';
 import { formatSeriesValue } from './format-value';
 import { GeomRenderer, type GeomHit, type GeomLine, type GeomOutput } from './geom-renderer';
 import type { LayoutContext, LegendEntry, ResolvedSeries, SeriesDefinition, SeriesPoint } from './types';
+import { minOf, maxOf } from '../data/extent';
 
 const PROJECTIONS: Record<string, () => GeoProjection> = {
   equalEarth: geoEqualEarth,
@@ -118,8 +119,8 @@ class MapRenderer extends GeomRenderer {
       const idProp = o.idProperty ?? 'id';
       const byId = new Map(s.points.map((p) => [p.key, p]));
       const vals = s.points.map((p) => p.y).filter((v): v is number => v !== null);
-      const lo = Math.min(...vals);
-      const hi = Math.max(...vals);
+      const lo = minOf(vals);
+      const hi = maxOf(vals);
       const interp = getInterpolator(o.colorScheme ?? 'viridis') ?? getInterpolator('viridis')!;
       const unknown = resolveColor(o.unknownColor ?? (ctx.scheme === 'dark' ? 'gray-200' : 'gray-150'), ctx.scheme);
       geo.features.forEach((f, fi) => {
@@ -165,8 +166,8 @@ export const mapSeries: SeriesDefinition<MapSeriesOptions> = {
   legendEntries(series): LegendEntry[] {
     return series.map((s) => {
       const vals = s.points.map((p) => p.y).filter((v): v is number => v !== null);
-      const lo = Math.min(...vals);
-      const hi = Math.max(...vals);
+      const lo = minOf(vals);
+      const hi = maxOf(vals);
       const interp = getInterpolator(s.options.colorScheme ?? 'viridis')!;
       const stops = Array.from({ length: 7 }, (_, i) => interp(i / 6));
       return { id: s.id, label: s.label, color: stops[3], shape: 'gradient', gradient: stops, min: String(lo), max: String(hi), seriesIndex: s.index };

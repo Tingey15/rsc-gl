@@ -45,19 +45,21 @@ export class LegendView {
   private signature = '';
   private hidden = new Set<string>();
 
-  update(entries: LegendEntry[], options: LegendOptions, hidden: Set<string>): void {
+  /** Returns true when the legend's DOM changed (its size may differ). */
+  update(entries: LegendEntry[], options: LegendOptions, hidden: Set<string>): boolean {
     this.hidden = hidden;
     const visible = entries.filter((e) => !options.hiddenEntries?.includes(e.id));
     const sig = JSON.stringify([visible.map((e) => [e.id, e.label, e.color, e.shape, e.dash]), options.labels, options.title, options.toggleable, options.highlight, options.position, options.align, options.descriptions]);
     if (sig === this.signature) {
       // Same entries: update state in place so keyboard focus survives toggles.
+      // Only touch nodes whose state changed (no style invalidation on plain data updates).
       this.el.querySelectorAll<HTMLElement>('.rgl-legend-item').forEach((node) => {
         const e = this.entries[Number(node.dataset.i)];
         const isHidden = hidden.has(e.id);
-        node.toggleAttribute('data-hidden', isHidden);
-        if (node.hasAttribute('aria-pressed')) node.setAttribute('aria-pressed', String(!isHidden));
+        if (node.hasAttribute('data-hidden') !== isHidden) node.toggleAttribute('data-hidden', isHidden);
+        if (node.hasAttribute('aria-pressed') && node.getAttribute('aria-pressed') !== String(!isHidden)) node.setAttribute('aria-pressed', String(!isHidden));
       });
-      return;
+      return false;
     }
     this.signature = sig;
     this.entries = visible;
@@ -86,6 +88,7 @@ export class LegendView {
         node.addEventListener('blur', () => this.callbacks.onHover(null));
       }
     });
+      return true;
   }
 
   /** Dims entries that are not the highlighted series. */

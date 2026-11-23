@@ -7,6 +7,7 @@ import type { DomainValue } from '../scales/scales';
 import { normalizeGroups, stackSeries, toResolvedSeries, uniqueValues } from './normalize';
 import type { HitResult, LayoutContext, ResolvedSeries, SeriesDefinition, SeriesRenderer } from './types';
 import { formatSeriesValue } from './format-value';
+import { minOf, maxOf } from '../data/extent';
 
 type BarSeries = ResolvedSeries<BarSeriesOptions>;
 
@@ -60,7 +61,7 @@ class BarRenderer implements SeriesRenderer {
       const band = cat.bandwidth() || Math.max(2, Math.abs(cat.step() || 20) * 0.8);
       const w = band / (n + (n - 1) * gapRatio);
       // Log scales have no zero: bars start at the bottom of the domain instead.
-      const floor = valAxis.scaleType === 'log' ? Math.min(...val.domain().map(Number)) : 0;
+      const floor = valAxis.scaleType === 'log' ? minOf(val.domain().map(Number)) : 0;
       const zero = val.map(clampDomain(val.domain(), floor));
       const y0Of = (y0: number | null | undefined) => (valAxis.scaleType === 'log' ? Math.max(y0 ?? floor, floor) : (y0 ?? 0));
 
@@ -239,8 +240,8 @@ class BarRenderer implements SeriesRenderer {
 
 function clampDomain(domain: DomainValue[], v: number): number {
   const nums = domain.map(Number);
-  const lo = Math.min(...nums);
-  const hi = Math.max(...nums);
+  const lo = minOf(nums);
+  const hi = maxOf(nums);
   return Math.min(hi, Math.max(lo, v));
 }
 

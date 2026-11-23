@@ -12,6 +12,7 @@ import { formatSeriesValue } from './format-value';
 import { GeomRenderer, type GeomHit, type GeomLabel, type GeomLine, type GeomOutput } from './geom-renderer';
 import { toNumber, toResolvedSeries } from './normalize';
 import type { LayoutContext, LegendEntry, NormalizeContext, ResolvedSeries, SeriesDefinition, SeriesPoint } from './types';
+import { maxOf } from '../data/extent';
 
 const TAU = Math.PI * 2;
 const polar = (cx: number, cy: number, r: number, a: number) => ({ x: cx + Math.sin(a) * r, y: cy - Math.cos(a) * r });
@@ -51,10 +52,10 @@ class RadarRenderer extends GeomRenderer {
     const cx = pl.x + pl.width / 2;
     const cy = pl.y + pl.height / 2;
     const R = Math.max(10, Math.min(pl.width, pl.height) / 2 - 30);
-    const maxOf = (m: string) => {
+    const maxFor = (m: string) => {
       if (typeof o0.max === 'number') return o0.max;
       if (o0.max && typeof o0.max === 'object' && o0.max[m] !== undefined) return o0.max[m];
-      return Math.max(1e-9, ...series.flatMap((s) => s.points.filter((p) => String(p.x) === m).map((p) => p.y ?? 0)));
+      return Math.max(1e-9, maxOf(series.flatMap((s) => s.points.filter((p) => String(p.x) === m).map((p) => p.y ?? 0))));
     };
     const angle = (i: number) => (i / n) * TAU;
     // Grid.
@@ -80,7 +81,7 @@ class RadarRenderer extends GeomRenderer {
       const o = s.options;
       const ring = metrics.map((m, i) => {
         const p = s.points.find((pt) => String(pt.x) === m);
-        const r = (R * Math.max(0, p?.y ?? 0)) / maxOf(m);
+        const r = (R * Math.max(0, p?.y ?? 0)) / maxFor(m);
         return { ...polar(cx, cy, r, angle(i)), p };
       });
       if (o.fillArea !== false) {
@@ -335,7 +336,7 @@ class RadialBarRenderer extends GeomRenderer {
       const band = (R - r0) / pts.length;
       const a0 = ((o.startAngle ?? 0) * Math.PI) / 180;
       const a1 = ((o.endAngle ?? 270) * Math.PI) / 180;
-      const max = o.maxValue ?? Math.max(...pts.map((p) => p.y ?? 0));
+      const max = o.maxValue ?? maxOf(pts.map((p) => p.y ?? 0));
       const track = resolveColor(ctx.scheme === 'dark' ? 'gray-200' : 'gray-100', ctx.scheme);
       pts.forEach((p, i) => {
         const outer = R - i * band - 2;
