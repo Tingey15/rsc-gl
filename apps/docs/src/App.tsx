@@ -92,7 +92,7 @@ function Fps() {
     return () => cancelAnimationFrame(raf);
   }, []);
   return (
-    <span className="pill" title="Page frame rate">
+    <span className="pill fps-pill" title="Page frame rate">
       {fps} fps
     </span>
   );
@@ -105,6 +105,21 @@ export function App() {
   const [backend, setBackend] = useState<'auto' | 'webgpu' | 'webgl2'>(() => (localStorageGet('backend') as 'auto') ?? 'auto');
   const [activeBackend, setActiveBackend] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  // Phone layout: the sidebar is a drawer opened from the menu button.
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => setMenuOpen(false), [path]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false);
+    window.addEventListener('keydown', onKey);
+    // Keep the page behind the drawer from scrolling.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
   // Charts honour the OS reduced-motion setting; the docs let readers override it.
   const reducedMotion = useMemo(() => systemPrefersReducedMotion(), []);
   const [forceMotion, setForceMotion] = useState(() => localStorageGet('motion') === 'force');
@@ -147,7 +162,20 @@ export function App() {
     <SiteContext.Provider value={site}>
       <ChartsEngineProvider prefer={backend === 'auto' ? undefined : backend}>
         <header className="topbar">
-          <a className="brand" href="/">
+          <button
+            className="icon-btn menu-btn"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-expanded={menuOpen}
+            aria-controls="docs-nav"
+            aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
+          >
+            <span className="menu-icon" data-open={menuOpen} aria-hidden>
+              <span />
+              <span />
+              <span />
+            </span>
+          </button>
+          <a className="brand" href={withBase('/')}>
             <span className="brand-logo" aria-hidden />
             RSC-GL Charts
           </a>
@@ -168,19 +196,19 @@ export function App() {
             </button>
           )}
           <Fps />
-          <div className="seg" role="group" aria-label="Rendering backend">
-            {(['auto', 'webgpu', 'webgl2'] as const).map((b) => (
-              <button key={b} aria-pressed={backend === b} onClick={() => setBackend(b)}>
-                {b === 'auto' ? 'Auto' : b === 'webgpu' ? 'WebGPU' : 'WebGL2'}
-              </button>
-            ))}
-          </div>
+          <BackendSwitch backend={backend} setBackend={setBackend} className="seg topbar-seg" />
           <button className="icon-btn" onClick={() => setScheme(scheme === 'dark' ? 'light' : 'dark')} aria-label="Toggle dark mode">
             {scheme === 'dark' ? '☀' : '☾'}
           </button>
         </header>
         <div className="shell">
-          <nav className="sidebar" aria-label="Documentation">
+          {menuOpen && <div className="nav-backdrop" onClick={() => setMenuOpen(false)} aria-hidden />}
+          <nav className="sidebar" id="docs-nav" data-open={menuOpen} aria-label="Documentation">
+            {/* On phones the topbar has no room for these, so the drawer carries them. */}
+            <div className="drawer-tools">
+              <input className="search" placeholder="Search docs…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search documentation" />
+              <BackendSwitch backend={backend} setBackend={setBackend} className="seg" />
+            </div>
             {[...groups].map(([group, routes]) => (
               <div className="nav-group" key={group}>
                 <div className="nav-title">{group}</div>
@@ -204,6 +232,18 @@ export function App() {
         </div>
       </ChartsEngineProvider>
     </SiteContext.Provider>
+  );
+}
+
+function BackendSwitch({ backend, setBackend, className }: { backend: string; setBackend: (b: 'auto' | 'webgpu' | 'webgl2') => void; className: string }) {
+  return (
+    <div className={className} role="group" aria-label="Rendering backend">
+      {(['auto', 'webgpu', 'webgl2'] as const).map((b) => (
+        <button key={b} aria-pressed={backend === b} onClick={() => setBackend(b)}>
+          {b === 'auto' ? 'Auto' : b === 'webgpu' ? 'WebGPU' : 'WebGL2'}
+        </button>
+      ))}
+    </div>
   );
 }
 
