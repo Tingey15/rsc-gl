@@ -23,6 +23,7 @@ import type {
   ResolvedAxis,
   ResolvedSeries,
   SeriesDefinition,
+  SeriesPoint,
   SeriesRenderer,
 } from '../series/types';
 import { resolveColor, resolvePalette, withAlpha } from '../theme/colors';
@@ -64,6 +65,31 @@ const FADE_MS = 180;
  * A GPU-rendered chart bound to a DOM container. Framework agnostic: React
  * (or any host) only calls `setOptions`, `destroy`, and listens to events.
  */
+/** Interleaved typed-array positions of a fast-path series, if it has them. */
+const positionsOf = (s: ResolvedSeries): ArrayLike<number> | undefined => (s.options as { positions?: ArrayLike<number> }).positions;
+
+/** Number of data points, including typed-array series (which keep no point objects). */
+function pointCount(s: ResolvedSeries): number {
+  const pos = positionsOf(s);
+  return pos ? pos.length >> 1 : s.points.length;
+}
+
+/**
+ * The point with data index `dataIndex`. Checks the matching array slot first
+ * (the usual case) before scanning, and builds the point on demand for
+ * typed-array series.
+ */
+function pointOf(s: ResolvedSeries, dataIndex: number): SeriesPoint | undefined {
+  const direct = s.points[dataIndex];
+  if (direct && direct.index === dataIndex) return direct;
+  const pos = positionsOf(s);
+  if (pos) return dataIndex >= 0 && dataIndex * 2 + 1 < pos.length ? { key: `${s.id}::${dataIndex}`, index: dataIndex, x: pos[dataIndex * 2], y: pos[dataIndex * 2 + 1] } : undefined;
+  return s.points.find((p) => p.index === dataIndex);
+}
+
+/** The point at position `i` in drawing order (keyboard navigation). */
+const pointAt = (s: ResolvedSeries, i: number): SeriesPoint | undefined => (positionsOf(s) ? pointOf(s, i) : s.points[i]);
+
 export class Chart implements Renderable {
   readonly root: HTMLElement;
   readonly plotEl: HTMLElement;
@@ -977,7 +1003,7 @@ export class Chart implements Renderable {
   private drawFocusRing(g: CanvasRenderingContext2D, now: number): void {
     if (!this.focusIndex || this.hl?.source !== 'keyboard' || document.activeElement !== this.root) return;
     const s = this.visibleSeries()[this.focusIndex.series];
-    const pt = s?.points[this.focusIndex.point];
+    const pt = s ? pointAt(s, this.focusIndex.point) : undefined;
     if (!s || !pt) return;
     const a = this.renderers.get(s.type)?.itemAnchor?.(s.id, pt.index, now);
     if (!a) return;
@@ -1102,7 +1128,7 @@ export class Chart implements Renderable {
       }
       const hit = this.hitTest(p.x, p.y);
       if (hit && hit.distance < 30) {
-        const pt = hit.series.points.find((x) => x.index === hit.dataIndex);
+        const pt = pointOf(hit.series, hit.dataIndex);
         this.options.onItemClick?.({ seriesId: hit.series.id, dataIndex: hit.dataIndex, datum: pt?.datum, value: pt?.y }, e as PointerEvent);
       }
       if (this.axisHover && this.options.onAxisClick) this.options.onAxisClick({ axisValue: this.axisHover.value, dataIndex: this.axisHover.index }, e as PointerEvent);
@@ -1113,7 +1139,7 @@ export class Chart implements Renderable {
       const hit = this.hitTest(p.x, p.y);
       if (hit) {
         e.preventDefault();
-        const pt = hit.series.points.find((x) => x.index === hit.dataIndex);
+        const pt = pointOf(hit.series, hit.dataIndex);
         this.options.onItemContextMenu({ seriesId: hit.series.id, dataIndex: hit.dataIndex, datum: pt?.datum }, e);
       }
     });
@@ -1361,7 +1387,7 @@ export class Chart implements Renderable {
           const idx = axis.scale.invertIndex(horizontalBars ? y : x);
           if (idx >= 0) this.axisHover = { axis, index: idx, value: axis.scale.domain()[idx] };
         } else if (hit) {
-          const pt = hit.series.points.find((p) => p.index === hit.dataIndex);
+          const pt = pointOf(hit.series, hit.dataIndex);
           if (pt) this.axisHover = { axis, index: hit.dataIndex, value: pt.x };
         }
       }
@@ -1403,7 +1429,7 @@ export class Chart implements Renderable {
 
   private itemTooltip(hit: HitResult, at: { x: number; y: number }): TooltipContext {
     const s = hit.series;
-    const pt = s.points.find((p) => p.index === hit.dataIndex);
+    const pt = pointOf(s, hit.dataIndex);
     const def = this.defs.get(s.type);
     const value = pt?.y ?? null;
     let formatted: string;
@@ -1437,7 +1463,7 @@ export class Chart implements Renderable {
     const vis = this.visibleSeries();
     if (!vis.length) return;
     let f = this.focusIndex ?? { series: 0, point: -1 };
-    const len = (i: number) => vis[i]?.points.length ?? 0;
+    const len = (i: number) => (vis[i] ? pointCount(vis[i]) : 0);
     switch (e.key) {
       case 'ArrowRight':
         f = { series: f.series, point: Math.min(len(f.series) - 1, f.point + 1) };
@@ -1472,7 +1498,7 @@ export class Chart implements Renderable {
       case ' ': {
         if (!this.focusIndex) return;
         const s = vis[f.series];
-        const pt = s.points[f.point];
+        const pt = pointAt(s, f.point);
         if (pt) this.options.onItemClick?.({ seriesId: s.id, dataIndex: pt.index, datum: pt.datum, value: pt.y }, e as unknown as PointerEvent);
         e.preventDefault();
         return;
@@ -1484,7 +1510,7 @@ export class Chart implements Renderable {
     if (f.point < 0) f.point = 0;
     this.focusIndex = f;
     const s = vis[f.series];
-    const pt = s.points[f.point];
+    const pt = pointAt(s, f.point);
     if (!pt) return;
     this.setHighlight({ seriesIndex: s.index, dataIndex: pt.index, source: 'keyboard' });
     const anchor = this.renderers.get(s.type)?.itemAnchor?.(s.id, pt.index, performance.now());
@@ -1492,7 +1518,7 @@ export class Chart implements Renderable {
       const tip = this.itemTooltip({ series: s, dataIndex: pt.index, anchor, distance: 0 }, anchor);
       this.tooltip.show(tip, { ...this.tooltipOptions(), placement: 'top' }, { width: this.width, height: this.height });
       this.emit('tooltip', tip);
-      this.liveRegion.textContent = `${s.label}, ${tip.axisLabel ? `${tip.axisLabel}, ` : ''}${tip.items[0]?.label ? `${tip.items[0].label}, ` : ''}${tip.items[0]?.formattedValue ?? ''}. ${f.point + 1} of ${s.points.length}.`;
+      this.liveRegion.textContent = `${s.label}, ${tip.axisLabel ? `${tip.axisLabel}, ` : ''}${tip.items[0]?.label ? `${tip.items[0].label}, ` : ''}${tip.items[0]?.formattedValue ?? ''}. ${f.point + 1} of ${pointCount(s)}.`;
     }
   }
 }
