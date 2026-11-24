@@ -129,7 +129,14 @@ export interface VennSet {
 export interface VennSeriesOptions extends BaseSeriesOptions {
   type: 'venn';
   sets?: VennSet[];
-  orientation?: number;
+  /** Rows (with `setsField` / `metric` / `labelField`) instead of `sets`. */
+  data?: Datum[];
+  /** Row field holding the sets array. Default 'sets'. */
+  setsField?: string;
+  /** Row field holding each region's label. Default 'label'. */
+  labelField?: string;
+  /** Degrees clockwise of the second circle from the first, or the legacy '0deg' … '270deg'. */
+  orientation?: number | '0deg' | '90deg' | '180deg' | '270deg';
 }
 
 export interface BulletSeriesOptions extends BaseSeriesOptions {
@@ -139,8 +146,21 @@ export interface BulletSeriesOptions extends BaseSeriesOptions {
   labelField?: string;
   targetField?: string;
   maxValue?: number;
-  thresholds?: { value: number; color: ColorInput }[];
+  /** `{ value, color }` (upper bound) or the legacy `{ thresholdMin?, thresholdMax?, fill }`. */
+  thresholds?: ({ value: number; color: ColorInput } | { thresholdMin?: number; thresholdMax?: number; fill?: ColorInput })[];
   numberFormat?: NumberFormat;
+  /** Shared scale: 'normal' fits the data, 'fixed' uses `maxScaleValue`, 'flexible' grows past it. Unset: each row on its own. */
+  scaleType?: 'normal' | 'fixed' | 'flexible';
+  maxScaleValue?: number;
+  showTarget?: boolean;
+  showTargetValue?: boolean;
+  /** Colors the bar with the threshold band its value falls in. */
+  thresholdBarColor?: boolean;
+  direction?: 'column' | 'row';
+  labelPosition?: 'top' | 'side';
+  track?: boolean;
+  metricLabel?: string;
+  targetLabel?: string;
 }
 
 /* ---------------------------------------------------------------- polar */

@@ -41,6 +41,10 @@ export interface ChartPlugin {
   readonly dragModifier?: 'none' | 'shift';
   /** Extra space (px) the plugin needs below the plot (e.g. a zoom slider). */
   reserveBottom?(chart: Chart): number;
+  /** Extra space (px) the plugin needs above the plot. */
+  reserveTop?(chart: Chart): number;
+  /** Extra space (px) the plugin needs right of the plot. */
+  reserveRight?(chart: Chart): number;
   setDevice?(device: GpuDevice): void;
   destroy?(): void;
 }

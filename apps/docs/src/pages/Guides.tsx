@@ -1,5 +1,7 @@
 import HeroCharts from '../demos/misc/HeroCharts';
-import { Callout, H2, H3, Page, PropsTable } from '../components/docs';
+import LegacyParity from '../demos/misc/LegacyParity';
+import LegacyParitySrc from '../demos/misc/LegacyParity.tsx?raw';
+import { Callout, Demo, H2, H3, Page, PropsTable } from '../components/docs';
 import { CodeBlock } from '../components/highlight';
 
 const CARDS = [
@@ -179,28 +181,58 @@ export function MigrationPage() {
           <code>{'{ value }'}</code>).
         </li>
         <li>
-          <code>Axis</code>, <code>Legend</code>, <code>ChartTooltip</code>, <code>ChartPopover</code>, <code>ReferenceLine</code>, <code>Title</code>,{' '}
-          <code>DonutSummary</code>, <code>SegmentLabel</code>, <code>BigNumber</code>, <code>Combo</code>.
+          <code>Axis</code>, <code>Legend</code>, <code>ChartTooltip</code> (or <code>ChartInspect</code>), <code>ChartPopover</code>, <code>ReferenceLine</code>,{' '}
+          <code>Title</code>, <code>Annotation</code>, <code>Trendline</code>, <code>TrendlineAnnotation</code>, <code>MetricRange</code>,{' '}
+          <code>LinePointAnnotation</code>, <code>ScatterAnnotation</code>, <code>ScatterPath</code>, <code>AxisAnnotation</code>, <code>AxisThumbnail</code>,{' '}
+          <code>DonutSummary</code>, <code>SegmentLabel</code>, <code>BigNumber</code>, <code>Combo</code>, <code>Bullet</code>, <code>Venn</code>,{' '}
+          <code>EmptyState</code>, and the newer <code>BarDirectLabel</code>, <code>LineDirectLabel</code> and <code>LineForecast</code>.
         </li>
         <li>
-          Controlled <code>hiddenSeries</code> / <code>highlightedSeries</code>, <code>loading</code>, <code>emptyStateText</code>, ref methods{' '}
-          <code>copy</code>, <code>download</code>, <code>getBase64Png</code>, <code>getSvg</code>.
+          The same defaults: a mark draws in one color unless <code>color</code> names a key, the axis line appears only with <code>baseline</code>,
+          value axes use <code>shortNumber</code>, titles are centered, charts are 300 px tall, and named palettes and color tokens resolve to the
+          same values.
+        </li>
+        <li>
+          Each mark&apos;s <code>ChartTooltip</code>, <code>ChartPopover</code>, <code>onClick</code>, <code>onMouseOver</code> and{' '}
+          <code>onMouseOut</code> apply to that mark only; split series are named by their facet value, so <code>hiddenSeries</code>,{' '}
+          <code>highlightedSeries</code> and legend callbacks receive the same names.
+        </li>
+        <li>
+          Controlled <code>hiddenSeries</code> / <code>highlightedSeries</code> / <code>highlightedItem</code> (with <code>idKey</code>),{' '}
+          <code>loading</code>, <code>emptyStateText</code>, ref methods <code>copy</code>, <code>download</code>, <code>getBase64Png</code>,{' '}
+          <code>getSvg</code>.
         </li>
         <li>Axes that are not declared are not drawn.</li>
       </ul>
+      <H2>Legacy code, unchanged</H2>
+      <p>
+        These charts use only the legacy component API: a dual metric axis with bar annotations and a controlled legend, a forecast with direct labels,
+        static-point callouts and a hover-only trendline, truncated labels with hover text, direct bar labels and outside segment labels.
+      </p>
+      <Demo title="LegacyParity.tsx" code={LegacyParitySrc}>
+        <LegacyParity />
+      </Demo>
       <H2>What changes</H2>
       <PropsTable
         rows={[
           { name: 'renderer', type: 'removed', description: 'Always GPU. Choose backends with ChartsEngineProvider.' },
           { name: 'UNSAFE spec / config props', type: 'removed', description: 'Use the props API or custom series definitions instead of raw specs.' },
+          { name: 'onVegaViewReady', type: 'onReady', description: 'Called with the chart engine instance once it has a GPU device.' },
+          { name: 'theme (renderer config)', type: 'colorScheme', description: 'Styling comes from colorScheme, colors and the engine theme option.' },
           { name: 'getSvg()', type: 'vector', description: 'True vector SVG (marks, axes, labels, legend).' },
-          { name: 'Trendline, MetricRange', type: 'supported', description: 'As children of Line / Bar / Scatter (Phase 2).' },
+          {
+            name: 'Not yet supported',
+            type: 'facets',
+            description:
+              'Opacity, lineType and size facets by key on bars and scatter, dodged-and-stacked bars ([key, key] facets), bar border dashes, legend facets and keys, and the Vega-specific hooks.',
+          },
         ]}
       />
       <H2>Codemod</H2>
       <p>
-        <code>@rsc-gl/codemod</code> rewrites imports from the legacy package (including pre-release sub-paths) and removes renderer-specific props
-        such as <code>renderer</code>, <code>config</code> and the raw spec escape hatch. Props that changed meaning get a TODO note.
+        <code>@rsc-gl/codemod</code> rewrites imports from the legacy package (including pre-release sub-paths), removes renderer-specific props
+        such as <code>renderer</code>, <code>config</code> and the raw spec escape hatch from the legacy components only, and renames{' '}
+        <code>onVegaViewReady</code> to <code>onReady</code>. Props that changed meaning get a TODO note.
       </p>
       <CodeBlock code={`npx rsc-gl-migrate src --from <legacy-package-name> --dry   # preview
 npx rsc-gl-migrate src --from <legacy-package-name>         # apply`} />

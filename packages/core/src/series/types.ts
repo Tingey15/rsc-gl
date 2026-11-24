@@ -44,6 +44,8 @@ export interface ResolvedSeries<O extends BaseSeriesOptions = BaseSeriesOptions>
   stack?: string;
   legendShape: LegendShape;
   dash?: number[];
+  /** Index of the series options (`ChartOptions.series`) that produced this series. */
+  markIndex?: number;
 }
 
 export interface Rect {
@@ -100,6 +102,8 @@ export interface AxisRequirement {
 }
 
 export interface NormalizeContext {
+  /** Row field that identifies a datum (default `id`, then `key`). */
+  idKey?: string;
   data?: ReadonlyArray<Datum>;
   dataset?: ReadonlyArray<Datum>;
   /** Category values for an axis id (from axis `data` / `dataKey`). */

@@ -337,7 +337,7 @@ class RadialBarRenderer extends GeomRenderer {
       const a0 = ((o.startAngle ?? 0) * Math.PI) / 180;
       const a1 = ((o.endAngle ?? 270) * Math.PI) / 180;
       const max = o.maxValue ?? maxOf(pts.map((p) => p.y ?? 0));
-      const track = resolveColor(ctx.scheme === 'dark' ? 'gray-200' : 'gray-100', ctx.scheme);
+      const track = resolveColor('gray-200', ctx.scheme);
       pts.forEach((p, i) => {
         const outer = R - i * band - 2;
         const inner = outer - band * 0.72;

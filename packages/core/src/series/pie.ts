@@ -113,34 +113,62 @@ class PieRenderer implements SeriesRenderer {
       const x = cur.cx + Math.sin(mid) * r;
       const y = cur.cy - Math.cos(mid) * r;
       const datum = { ...(sl.point.datum as PieDatum), value: sl.point.y ?? 0, percent: sl.percent };
-      const text =
-        typeof o.arcLabel === 'function'
-          ? o.arcLabel(datum)
-          : o.arcLabel === 'value'
+      const kindText = (kind: PieSeriesOptions['arcLabel'] | undefined): string =>
+        typeof kind === 'function'
+          ? kind(datum)
+          : kind === 'value'
             ? String(sl.point.y ?? '')
-            : o.arcLabel === 'formattedValue'
+            : kind === 'formattedValue'
               ? formatSeriesValue(sl.series, sl.point.y, ctx.formatter, 'label', sl.point.index)
-              : o.arcLabel === 'percent'
-                ? ctx.formatter.number(sl.percent, '.0%')
-                : (sl.point.label ?? '');
+              : kind === 'percent'
+                ? ctx.formatter.number(sl.percent, o.percentFormat ?? '.0%')
+                : o.arcLabelField
+                  ? String((sl.point.datum as Record<string, unknown> | undefined)?.[o.arcLabelField] ?? '')
+                  : (sl.point.label ?? '');
+      const text = kindText(o.arcLabel);
+      const second = o.arcLabelSecondary ? kindText(o.arcLabelSecondary) : '';
+      g.globalAlpha = Math.min(1, Math.max(0, cur.color[3]));
+      if (o.arcLabelPosition === 'outside') {
+        // Outside the ring, aligned away from the center: label in bold, the value under it.
+        const ro = cur.outerRadius + 10;
+        const ox = cur.cx + Math.sin(mid) * ro;
+        const oy = cur.cy - Math.cos(mid) * ro;
+        g.textAlign = Math.abs(Math.sin(mid)) < 0.2 ? 'center' : Math.sin(mid) > 0 ? 'left' : 'right';
+        g.fillStyle = ctx.theme.textColor;
+        g.font = `600 ${ctx.theme.fontSize}px ${ctx.theme.fontFamily}`;
+        const lh = ctx.theme.fontSize + 2;
+        const top = Math.cos(mid) > 0.2 ? -lh * (second ? 1 : 0.5) : Math.cos(mid) < -0.2 ? lh * 0.5 : second ? -lh / 2 : 0;
+        g.fillText(text, ox, oy + top);
+        if (second) {
+          g.font = `${ctx.theme.fontSize}px ${ctx.theme.fontFamily}`;
+          g.fillText(second, ox, oy + top + lh);
+        }
+        g.textAlign = 'center';
+        continue;
+      }
       g.font = `600 ${ctx.theme.fontSize}px ${ctx.theme.fontFamily}`;
       g.fillStyle = contrastText(sl.point.color ?? sl.series.color);
-      g.globalAlpha = Math.min(1, Math.max(0, cur.color[3]));
-      g.fillText(text, x, y);
+      if (second) {
+        const lh = ctx.theme.fontSize + 2;
+        g.fillText(text, x, y - lh / 2);
+        g.font = `${ctx.theme.fontSize}px ${ctx.theme.fontFamily}`;
+        g.fillText(second, x, y + lh / 2);
+      } else g.fillText(text, x, y);
     }
     g.globalAlpha = 1;
     for (const c of this.centers) {
       const o = c.series.options;
-      if (!o.centerLabel || c.inner < 20) continue;
-      const text = typeof o.centerLabel === 'function' ? o.centerLabel(c.total) : o.centerLabel;
+      if ((!o.centerLabel && !o.centerSubLabel) || c.inner < 20) continue;
+      const text = typeof o.centerLabel === 'function' ? o.centerLabel(c.total) : (o.centerLabel ?? '');
       const size = Math.max(12, Math.min(40, c.inner * 0.42));
       g.font = `700 ${size}px ${ctx.theme.fontFamily}`;
       g.fillStyle = ctx.theme.textColor;
-      g.fillText(text, c.cx, c.cy - (o.centerSubLabel ? size * 0.3 : 0));
+      if (text) g.fillText(text, c.cx, c.cy - (o.centerSubLabel ? size * 0.3 : 0));
       if (o.centerSubLabel) {
-        g.font = `500 ${Math.max(11, size * 0.38)}px ${ctx.theme.fontFamily}`;
-        g.fillStyle = ctx.theme.mutedTextColor;
-        g.fillText(o.centerSubLabel, c.cx, c.cy + size * 0.55);
+        // Alone (value hidden), the sub label sits in the middle.
+        g.font = `500 ${Math.max(11, size * (text ? 0.38 : 0.5))}px ${ctx.theme.fontFamily}`;
+        g.fillStyle = text ? ctx.theme.mutedTextColor : ctx.theme.textColor;
+        g.fillText(o.centerSubLabel, c.cx, text ? c.cy + size * 0.55 : c.cy);
       }
     }
     g.restore();

@@ -32,6 +32,19 @@ describe('codemod', () => {
     expect(removeJsxProp(`const renderer = 1; <A renderer="x" />`, 'renderer').code).toBe(`const renderer = 1; <A />`);
   });
 
+  it('only strips props from components imported from the legacy package', () => {
+    const src = `import { Chart } from '${LEGACY}';\nimport { Form } from 'forms';\n<Form config={c} />\n<Chart config={c} />`;
+    const r = transform(src, { from: [LEGACY] });
+    expect(r.code).toContain('<Form config={c} />');
+    expect(r.code).toContain('<Chart />');
+  });
+
+  it('renames onVegaViewReady to onReady and flags it for review', () => {
+    const r = transform(`import { Chart as C } from '${LEGACY}';\n<C onVegaViewReady={(v) => ready(v)} />`, { from: [LEGACY] });
+    expect(r.code).toContain('<C onReady={(v) => ready(v)} />');
+    expect(r.code).toContain('TODO(rsc-gl): review `onReady`');
+  });
+
   it('adds review notes for props that changed meaning', () => {
     const r = transform(`import { Chart } from '${LEGACY}';\n<Chart theme={darkTheme} />`, { from: [LEGACY] });
     expect(r.code.startsWith('// TODO(rsc-gl)')).toBe(true);

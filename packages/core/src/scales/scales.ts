@@ -13,7 +13,26 @@ import {
   type ScalePoint,
   type ScaleTime,
 } from 'd3-scale';
+import {
+  timeDay,
+  timeHour,
+  timeMinute,
+  timeMonth,
+  timeSecond,
+  timeWeek,
+  timeYear,
+  utcDay,
+  utcHour,
+  utcMinute,
+  utcMonth,
+  utcSecond,
+  utcWeek,
+  utcYear,
+  type CountableTimeInterval,
+  type TimeInterval,
+} from 'd3-time';
 import { minOf, maxOf } from '../data/extent';
+import type { TimeGranularity } from '../format/format';
 
 export type ScaleType = 'band' | 'point' | 'linear' | 'log' | 'symlog' | 'pow' | 'sqrt' | 'time' | 'utc';
 export type DomainValue = number | string | Date;
@@ -36,7 +55,8 @@ export interface ChartScale {
   step(): number;
   domain(): DomainValue[];
   range(): [number, number];
-  ticks(count?: number): DomainValue[];
+  /** Tick values: a target count, or (time scales) a d3 time interval. */
+  ticks(count?: number | TimeInterval): DomainValue[];
   /** Pixel to domain value. Ordinal scales return the nearest category. */
   invert(px: number): DomainValue | undefined;
   /** Index of the category nearest `px` (ordinal only). */
@@ -178,11 +198,63 @@ function wrapContinuous(type: ScaleType, s: ScaleContinuousNumeric<number, numbe
     step: () => 0,
     domain: () => s.domain() as number[],
     range: () => s.range() as [number, number],
-    ticks: (count = 5) => (s.ticks(count) as unknown as DomainValue[]),
+    ticks: (count = 5) => {
+      // Intervals only apply to time scales; elsewhere fall back to the default count.
+      if (typeof count !== 'number' && !isTimeScale(type)) count = 5;
+      const out = (s.ticks as (c: number | TimeInterval) => (number | Date)[])(count);
+      return out as unknown as DomainValue[];
+    },
     invert: (px) => {
       const v = s.invert(px) as number | Date;
       return v instanceof Date ? v.getTime() : v;
     },
     invertIndex: () => -1,
   };
+}
+
+const LOCAL_INTERVALS: Record<TimeGranularity, CountableTimeInterval> = {
+  second: timeSecond,
+  minute: timeMinute,
+  hour: timeHour,
+  day: timeDay,
+  week: timeWeek,
+  month: timeMonth,
+  quarter: timeMonth,
+  year: timeYear,
+};
+const UTC_INTERVALS: Record<TimeGranularity, CountableTimeInterval> = {
+  second: utcSecond,
+  minute: utcMinute,
+  hour: utcHour,
+  day: utcDay,
+  week: utcWeek,
+  month: utcMonth,
+  quarter: utcMonth,
+  year: utcYear,
+};
+
+/** Approximate length of one granularity step in ms. */
+export const GRANULARITY_MS: Record<TimeGranularity, number> = {
+  second: 1e3,
+  minute: 6e4,
+  hour: 36e5,
+  day: 864e5,
+  week: 6048e5,
+  month: 2629746e3,
+  quarter: 7889238e3,
+  year: 31556952e3,
+};
+
+/**
+ * The d3 time interval for a granularity (quarters are three months), taking
+ * every `step`-th unit counted from 1970 (so months stay aligned to January).
+ * `utc` selects UTC intervals.
+ */
+export function timeTickInterval(granularity: TimeGranularity, utc = false, step = 1): TimeInterval {
+  const base = (utc ? UTC_INTERVALS : LOCAL_INTERVALS)[granularity] ?? (utc ? utcDay : timeDay);
+  const k = Math.max(1, Math.floor(step)) * (granularity === 'quarter' ? 3 : 1);
+  if (k === 1) return base;
+  // Count from a fixed origin so steps stay even across month and year boundaries.
+  const origin = new Date(utc ? Date.UTC(1970, 0, 1) : new Date(1970, 0, 1).getTime());
+  return base.filter((d) => base.count(origin, d) % k === 0);
 }

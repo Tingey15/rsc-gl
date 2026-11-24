@@ -22,7 +22,8 @@ export function exportRows(series: ResolvedSeries[], ctx: LayoutContext | null, 
     const xa = ctx?.xAxis(visible[0].xAxisId);
     const horizontal = visible.some((s) => (s.options as { layout?: string }).layout === 'horizontal');
     const dimAxis = horizontal ? ctx?.yAxis(visible[0].yAxisId) : xa;
-    const dimLabel = dimAxis?.options.label;
+    const rawLabel = dimAxis?.options.label;
+    const dimLabel = Array.isArray(rawLabel) ? rawLabel.join(' ') : rawLabel;
     const time = !!dimAxis && isTimeScale(dimAxis.scaleType);
     const keys: unknown[] = [];
     const seen = new Map<string, number>();

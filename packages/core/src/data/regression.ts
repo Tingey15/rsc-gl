@@ -46,7 +46,7 @@ const polyEval = (c: number[], x: number) => c.reduceRight((acc, k) => acc * x +
  * moving averages. x values are normalized internally so large timestamps
  * stay numerically stable.
  */
-export function trend(points: XY[], method: TrendlineMethod = 'linear'): { at?: (x: number) => number; points?: XY[] } {
+export function trend(points: XY[], method: TrendlineMethod = 'linear', opts: { partialWindows?: boolean } = {}): { at?: (x: number) => number; points?: XY[] } {
   const pts = points.filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y)).sort((a, b) => a.x - b.x);
   if (pts.length < 2) return { points: pts };
   const x0 = pts[0].x;
@@ -71,6 +71,8 @@ export function trend(points: XY[], method: TrendlineMethod = 'linear'): { at?: 
       sum += pts[i].y;
       if (i >= w) sum -= pts[i - w].y;
       if (i >= w - 1) out.push({ x: pts[i].x, y: sum / w });
+      // Partial windows average the points seen so far.
+      else if (opts.partialWindows) out.push({ x: pts[i].x, y: sum / (i + 1) });
     }
     return { points: out };
   }

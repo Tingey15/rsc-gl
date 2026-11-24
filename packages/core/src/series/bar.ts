@@ -19,6 +19,7 @@ interface BarGeom {
   index: number;
   rect: { x: number; y: number; width: number; height: number };
   value: number | null;
+  datum?: Record<string, unknown>;
 }
 
 class BarRenderer implements SeriesRenderer {
@@ -47,10 +48,10 @@ class BarRenderer implements SeriesRenderer {
     for (const group of groups.values()) {
       const horizontal = isHorizontal(group[0]);
       const catAxis = horizontal ? ctx.yAxis(group[0].yAxisId) : ctx.xAxis(group[0].xAxisId);
-      const valAxis = horizontal ? ctx.xAxis(group[0].xAxisId) : ctx.yAxis(group[0].yAxisId);
-      if (!catAxis || !valAxis) continue;
+      const groupValAxis = horizontal ? ctx.xAxis(group[0].xAxisId) : ctx.yAxis(group[0].yAxisId);
+      if (!catAxis || !groupValAxis) continue;
       const cat = catAxis.scale;
-      const val = valAxis.scale;
+
       // Slots: one per stack id (or per unstacked series).
       const slots = uniqueValues(group.map((s) => s.stack ?? `__${s.id}`)) as string[];
       // Stagger by category so every segment of a stack (and each dodge group) moves together.
@@ -60,10 +61,6 @@ class BarRenderer implements SeriesRenderer {
       const gapRatio = catAxis.options.barGapRatio ?? 0.1;
       const band = cat.bandwidth() || Math.max(2, Math.abs(cat.step() || 20) * 0.8);
       const w = band / (n + (n - 1) * gapRatio);
-      // Log scales have no zero: bars start at the bottom of the domain instead.
-      const floor = valAxis.scaleType === 'log' ? minOf(val.domain().map(Number)) : 0;
-      const zero = val.map(clampDomain(val.domain(), floor));
-      const y0Of = (y0: number | null | undefined) => (valAxis.scaleType === 'log' ? Math.max(y0 ?? floor, floor) : (y0 ?? 0));
 
       // Determine outermost segment per stack/category for corner rounding.
       const outerPos = new Map<string, BarSeries>();
@@ -78,6 +75,13 @@ class BarRenderer implements SeriesRenderer {
       }
 
       for (const s of group) {
+        // Each series uses its own value axis (a secondary metric axis can share the categories).
+        const valAxis = (horizontal ? ctx.xAxis(s.xAxisId) : ctx.yAxis(s.yAxisId)) ?? groupValAxis;
+        const val = valAxis.scale;
+        // Log scales have no zero: bars start at the bottom of the domain instead.
+        const floor = valAxis.scaleType === 'log' ? minOf(val.domain().map(Number)) : 0;
+        const zero = val.map(clampDomain(val.domain(), floor));
+        const y0Of = (y0: number | null | undefined) => (valAxis.scaleType === 'log' ? Math.max(y0 ?? floor, floor) : (y0 ?? 0));
         const slot = slots.indexOf(s.stack ?? `__${s.id}`);
         const o = s.options;
         const radius = o.borderRadius ?? 4;
@@ -101,7 +105,9 @@ class BarRenderer implements SeriesRenderer {
           const isOuter = (positive ? outerPos : outerNeg).get(stackKey) === s;
           const corners = roundAll ? 15 : !isOuter ? 0 : horizontal ? (positive ? 6 : 9) : positive ? 3 : 12;
           const color: RGBA = withAlpha(p.color ?? s.color, o.opacity ?? 1);
-          const rect = horizontal ? { x: a, y: pos, width: len, height: w } : { x: pos, y: a, width: w, height: len };
+          // A border without its own color is drawn in the fill color: the bar grows by half the width on each side.
+          const grow = !o.borderColor && o.borderWidth ? o.borderWidth / 2 : 0;
+          const rect = horizontal ? { x: a - grow, y: pos - grow, width: len + 2 * grow, height: w + 2 * grow } : { x: pos - grow, y: a - grow, width: w + 2 * grow, height: len + 2 * grow };
           const base = horizontal
             ? { x: val.map(y0Of(p.y0)), y: pos, width: 0, height: w }
             : { x: pos, y: v0 === v1 ? zero : val.map(y0Of(p.y0)), width: w, height: 0 };
@@ -115,14 +121,14 @@ class BarRenderer implements SeriesRenderer {
             enter: ctx.enterAnimation ? { ...value, ...base } : { ...value, color: [color[0], color[1], color[2], 0] },
             exit: { ...value, ...base, color: [color[0], color[1], color[2], 0] },
           });
-          geoms.push({ key: `${s.id}|${p.key}`, series: s, index: p.index, rect, value: p.y });
+          geoms.push({ key: `${s.id}|${p.key}`, series: s, index: p.index, rect, value: p.y, datum: p.datum });
         }
       }
     }
     const first = series[0]?.options;
     this.mark.style = {
       strokeColor: first?.borderColor ? resolveColor(first.borderColor, ctx.scheme) : [0, 0, 0, 0],
-      strokeWidth: first?.borderWidth ?? 0,
+      strokeWidth: first?.borderColor ? (first.borderWidth ?? 0) : 0,
       hoverGrow: 0,
     };
     this.mark.update(items, ctx.transition, ctx.now);
@@ -148,8 +154,10 @@ class BarRenderer implements SeriesRenderer {
       if (!o.barLabel) continue;
       const text =
         typeof o.barLabel === 'function'
-          ? o.barLabel({ value: geo.value, dataIndex: geo.index, seriesId: geo.series.id })
-          : formatSeriesValue(geo.series, geo.value, ctx.formatter, 'label', geo.index);
+          ? o.barLabel({ value: geo.value, dataIndex: geo.index, seriesId: geo.series.id, datum: geo.datum })
+          : o.barLabelFormat && geo.value !== null
+            ? ctx.formatter.number(geo.value, o.barLabelFormat)
+            : formatSeriesValue(geo.series, geo.value, ctx.formatter, 'label', geo.index);
       if (!text) continue;
       // Labels ride on the animated bar and fade with it.
       const cur = this.mark.currentState(geo.key, now);
@@ -161,22 +169,46 @@ class BarRenderer implements SeriesRenderer {
       let x: number;
       let y: number;
       let color = ctx.theme.textColor;
+      const neg0 = (geo.value ?? 0) < 0;
+      // Inside placements need room; 'spill' draws them anyway.
+      const fits = o.barLabelOverflow === 'spill' || (horizontal ? r.width >= tw + 8 && r.height >= 12 : r.height >= 16 && r.width >= tw + 4);
       if (placement === 'center') {
         x = r.x + r.width / 2;
         y = r.y + r.height / 2;
         g.textAlign = 'center';
-        if ((horizontal ? r.width : r.height) < 14 || (horizontal ? r.width : r.width) < tw + 4) continue;
+        if (!fits) continue;
         color = contrastText(geo.series.color);
       } else if (placement === 'inside-end') {
-        g.textAlign = horizontal ? 'right' : 'center';
-        x = horizontal ? r.x + r.width - 6 : r.x + r.width / 2;
-        y = horizontal ? r.y + r.height / 2 : r.y + 10;
+        if (!fits) continue;
+        g.textAlign = horizontal ? (neg0 ? 'left' : 'right') : 'center';
+        x = horizontal ? (neg0 ? r.x + 6 : r.x + r.width - 6) : r.x + r.width / 2;
+        y = horizontal ? r.y + r.height / 2 : neg0 ? r.y + r.height - 10 : r.y + 10;
+        color = contrastText(geo.series.color);
+      } else if (placement === 'start') {
+        if (!fits) continue;
+        g.textAlign = horizontal ? (neg0 ? 'right' : 'left') : 'center';
+        x = horizontal ? (neg0 ? r.x + r.width - 6 : r.x + 6) : r.x + r.width / 2;
+        y = horizontal ? r.y + r.height / 2 : neg0 ? r.y + 10 : r.y + r.height - 10;
         color = contrastText(geo.series.color);
       } else {
         const neg = (geo.value ?? 0) < 0;
         g.textAlign = horizontal ? (neg ? 'right' : 'left') : 'center';
         x = horizontal ? (neg ? r.x - 4 : r.x + r.width + 4) : r.x + r.width / 2;
         y = horizontal ? r.y + r.height / 2 : neg ? r.y + r.height + 9 : r.y - 9;
+      }
+      if (o.barLabelBadge) {
+        // Annotation badge: a rounded box in the theme's tooltip colors.
+        const bw = tw + 10;
+        const bh = ctx.theme.fontSize + 6;
+        const bx = g.textAlign === 'center' ? x - bw / 2 : g.textAlign === 'right' ? x - bw + 3 : x - 3;
+        g.fillStyle = ctx.theme.tooltipBackground;
+        g.strokeStyle = ctx.theme.tooltipBorder;
+        g.lineWidth = 1;
+        g.beginPath();
+        g.roundRect(bx, y - bh / 2, bw, bh, 4);
+        g.fill();
+        g.stroke();
+        color = ctx.theme.tooltipText;
       }
       g.fillStyle = color;
       g.fillText(text, x, y);

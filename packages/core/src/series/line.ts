@@ -265,7 +265,7 @@ class PathRenderer implements SeriesRenderer {
         }
         const rc = r.color ? resolveColor(r.color, ctx.scheme) : s.color;
         g.band.style = { color: withAlpha(rc, r.rangeOpacity ?? 0.2), opacity: 1 };
-        const ls = { color: withAlpha(rc, 0.9), width: 1, dash: resolveLineType(r.lineType ?? 'dashed'), alternateDash: [], opacity: 1 };
+        const ls = { color: withAlpha(rc, 0.9 * (r.lineOpacity ?? 1)), width: r.lineWidth ?? 1, dash: resolveLineType(r.lineType ?? 'dashed'), alternateDash: [], opacity: 1 };
         g.lo.style = ls;
         g.hi.style = { ...ls };
         g.band.update(band, ctx.transition, ctx.now, enter);
@@ -283,7 +283,7 @@ class PathRenderer implements SeriesRenderer {
             lo.showMark === true ||
             (lo.showMark === 'start' && i === 0) ||
             (lo.showMark === 'end' && i === definedPts.length - 1) ||
-            (typeof lo.showMark === 'function' && lo.showMark({ index: p.index, value: p.value }));
+            (typeof lo.showMark === 'function' && lo.showMark({ index: p.index, value: p.value, datum: byIndex.get(p.index)?.datum }));
           if (!show) return;
           const fill: RGBA = lo.hollowMarks ? resolveColor(ctx.theme.scheme === 'dark' ? '#1b1b1f' : '#ffffff') : color;
           const value: PointAttrs = { x: p.x, y: p.y, size, color: fill, strokeColor: color, shape: symbolShapeId(lo.markShape) };
@@ -483,6 +483,7 @@ function pathRequirements(series: PathSeries[]) {
       else if (p.y !== null) ys.push(p.y);
       if (p.y0 !== undefined && (s.stack || (s.options as AreaSeriesOptions).metricStart)) ys.push(p.y0);
       for (const r of (s.options as LineSeriesOptions).metricRanges ?? []) {
+        if (r.scaleAxisToFit === false) continue;
         const a = toNumber(p.datum?.[r.metricStart]);
         const b = toNumber(p.datum?.[r.metricEnd]);
         if (a !== null) ys.push(a);

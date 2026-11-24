@@ -1,6 +1,6 @@
 import type { GpuDevice, GpuSurface } from '@rsc-gl/gpu';
 import { EASING_ID, ease, prefersReducedMotion, resolveTransition, type TransitionOptions } from '../animation/easing';
-import { drawAxes, layoutCartesian, axisCategories, type AxisLayout, type AxisTick, type CartesianLayout } from '../components/axes';
+import { drawAxes, layoutCartesian, axisCategories, hitAxisLabel, type AxisLabelBox, type AxisLayout, type AxisTick, type CartesianLayout } from '../components/axes';
 import { axisAnnotationBoxes, type AxisAnnotationBox } from '../components/axis-extras';
 import { onImageLoad } from '../components/images';
 import { exportRows, serializeRows, type DataExportFormat, type TextExportFormat } from '../data/export';
@@ -60,6 +60,12 @@ interface HighlightState {
 }
 
 const FADE_MS = 180;
+
+/** Datum of a point, when it has one. */
+const datumOf = (s: ResolvedSeries, dataIndex: number) => pointOf(s, dataIndex)?.datum;
+
+/** True when any of `keys` is truthy on the datum. */
+const excluded = (keys: string[] | undefined, datum: Record<string, unknown> | undefined) => !!keys?.length && !!datum && keys.some((k) => !!datum[k]);
 
 /**
  * A GPU-rendered chart bound to a DOM container. Framework agnostic: React
@@ -195,6 +201,7 @@ export class Chart implements Renderable {
     this.legend = new LegendView({
       onToggle: (e) => this.toggleEntry(e.id),
       onHover: (e) => {
+        this.options.onLegendHover?.(e ? e.id : null);
         if (!e) {
           if (this.hl?.source === 'legend') this.setHighlight(null);
           return;
@@ -252,8 +259,11 @@ export class Chart implements Renderable {
     const prev = this.options;
     this.options = options;
     this.applyChrome(false);
-    if (options.highlightedItem !== undefined && options.highlightedItem !== prev.highlightedItem) this.applyControlledHighlight();
+    const controlledChanged =
+      (options.highlightedItem !== undefined && options.highlightedItem !== prev.highlightedItem) || (options.highlightedId !== undefined && options.highlightedId !== prev.highlightedId);
     this.relayout(true);
+    // After layout, so the series the highlight points at exist.
+    if (controlledChanged) this.applyControlledHighlight();
   }
 
   /**
@@ -572,6 +582,7 @@ export class Chart implements Renderable {
     const title: TitleOptions | undefined = typeof o.title === 'string' ? { text: o.title } : o.title;
     this.titleEl.style.display = title ? '' : 'none';
     this.titleEl.style.textAlign = title?.align === 'middle' ? 'center' : title?.align === 'end' ? 'right' : 'left';
+    this.titleEl.style.fontWeight = title?.fontWeight !== undefined ? String(title.fontWeight) : '';
     this.titleEl.innerHTML = title ? `<div class="rgl-title-main"></div>${title.subtitle ? '<div class="rgl-title-sub"></div>' : ''}` : '';
     if (title) {
       this.titleEl.querySelector('.rgl-title-main')!.textContent = title.text;
@@ -643,20 +654,22 @@ export class Chart implements Renderable {
       scheme,
       nextIndex: () => indexCursor++,
       isHidden: (id) => this.hidden.has(id),
+      idKey: o.idKey,
     };
 
     const all: ResolvedSeries[] = [];
-    for (const so of o.series) {
+    o.series.forEach((so, markIndex) => {
       const def = this.defs.get(so.type);
       if (!def) {
         console.warn(`[rsc-gl] series type "${so.type}" is not registered for this chart`);
-        continue;
+        return;
       }
       for (const s of def.normalize(so as never, nctx)) {
         s.hidden = this.hidden.has(s.id);
+        s.markIndex = markIndex;
         all.push(s);
       }
-    }
+    });
     // Per-type processing (stacking) on visible series.
     const byType = new Map<string, ResolvedSeries[]>();
     for (const s of all) {
@@ -675,6 +688,10 @@ export class Chart implements Renderable {
         for (const s of list)
           this.legendEntries.push({ id: s.id, label: s.label, color: s.colorCss, shape: s.legendShape, dash: s.dash, seriesIndex: s.index });
     }
+    // Marks of different types that split by the same key share series names (a bar and a line per
+    // series): one legend entry each, as the legend toggles and highlights them together.
+    const seenEntry = new Set<string>();
+    this.legendEntries = this.legendEntries.filter((e) => !seenEntry.has(e.id) && !!seenEntry.add(e.id));
 
     // The legend (and title) take space from the plot. Fill them in first and
     // re-measure synchronously; otherwise the resulting resize would re-run
@@ -710,7 +727,12 @@ export class Chart implements Renderable {
     const hasCartesian = all.some((s) => this.defs.get(s.type)?.coordinates === 'cartesian');
     let plot: Rect;
     const reserve = this.plugins.reduce((acc, p) => acc + (p.reserveBottom?.(this) ?? 0), 0);
-    const margin = reserve ? { ...o.margin, bottom: (o.margin?.bottom ?? 8) + reserve } : o.margin;
+    const reserveTop = this.plugins.reduce((acc, p) => acc + (p.reserveTop?.(this) ?? 0), 0);
+    const reserveRight = this.plugins.reduce((acc, p) => acc + (p.reserveRight?.(this) ?? 0), 0);
+    let margin = o.margin;
+    if (reserve) margin = { ...margin, bottom: (margin?.bottom ?? 8) + reserve };
+    if (reserveTop) margin = { ...margin, top: (margin?.top ?? 8) + reserveTop };
+    if (reserveRight) margin = { ...margin, right: (margin?.right ?? 8) + reserveRight };
     if (hasCartesian) {
       this.cartesian = layoutCartesian({
         defs: this.defs,
@@ -793,8 +815,15 @@ export class Chart implements Renderable {
       }
     } else if (!o.loading) this.stateEl.style.display = 'none';
     this.firstRender = false;
+    // A controlled highlight that names a series which did not exist yet (first layout) applies now.
+    if (!this.hl && (o.highlightedItem || (o.highlightedId !== undefined && o.highlightedId !== null))) this.applyControlledHighlight();
     this.engine.invalidate(this);
     this.emit('layout', ctx);
+  }
+
+  /** Hover fade duration: none when animations are off. */
+  private get fadeMs(): number {
+    return this.options.animation === false ? 0 : FADE_MS;
   }
 
   private prevCartesian: CartesianLayout | null = null;
@@ -906,7 +935,7 @@ export class Chart implements Renderable {
   /* ------------------------------------------------------------------ rendering */
 
   private highlightUniform(now: number): [number, number, number, number] {
-    const t = this.fadeStart > 0 ? Math.min(1, (now - this.fadeStart) / FADE_MS) : 1;
+    const t = this.fadeStart > 0 && this.fadeMs > 0 ? Math.min(1, (now - this.fadeStart) / this.fadeMs) : 1;
     const f = this.fadeFrom + (this.fadeTo - this.fadeFrom) * ease(t, EASING_ID.cubicOut);
     const hl = this.hl;
     if (!hl && f <= 0.001) return [-1, -1, 1, 0];
@@ -967,7 +996,7 @@ export class Chart implements Renderable {
     animating ||= !!this.grid?.isAnimating(now);
     for (const p of this.plugins) animating ||= !!p.isAnimating?.(now);
     animating ||= !!this.tickAnim;
-    animating ||= this.fadeStart > 0 && now - this.fadeStart < FADE_MS;
+    animating ||= this.fadeStart > 0 && now - this.fadeStart < this.fadeMs;
     if (!animating && this.fadeStart > 0) {
       this.fadeStart = 0;
       this.fadeFrom = this.fadeTo;
@@ -1030,7 +1059,7 @@ export class Chart implements Renderable {
       this.hl = next;
       return;
     }
-    if (!next && this.options.highlightedItem) {
+    if (!next && (this.options.highlightedItem || (this.options.highlightedId !== undefined && this.options.highlightedId !== null))) {
       // Fall back to the controlled highlight when the pointer leaves.
       this.hl = null;
       this.applyControlledHighlight();
@@ -1049,17 +1078,36 @@ export class Chart implements Renderable {
     this.legend.setFaded(next ? next.seriesIndex : null, next?.dataIndex);
     const id: ItemIdentifier | null = s ? { seriesId: s.id, dataIndex: next!.dataIndex >= 0 ? next!.dataIndex : undefined } : null;
     if (next?.source !== 'controlled') this.options.onHighlightChange?.(id);
+    // Mark hover callbacks: pointer moves between items, or leaves the last one.
+    if (next?.source === 'pointer' && s && id) this.options.onItemHover?.({ ...id, datum: id.dataIndex !== undefined ? datumOf(s, id.dataIndex) : undefined, markIndex: s.markIndex });
+    else if (!next && prev?.source === 'pointer') this.options.onItemHover?.(null);
     this.emit('highlight', id);
     this.engine.invalidate(this);
   }
 
   private currentFade(now: number): number {
-    if (this.fadeStart <= 0) return this.fadeTo;
-    const t = Math.min(1, (now - this.fadeStart) / FADE_MS);
+    if (this.fadeStart <= 0 || this.fadeMs <= 0) return this.fadeTo;
+    const t = Math.min(1, (now - this.fadeStart) / this.fadeMs);
     return this.fadeFrom + (this.fadeTo - this.fadeFrom) * ease(t, EASING_ID.cubicOut);
   }
 
   private applyControlledHighlight(): void {
+    const byId = this.options.highlightedId;
+    if (this.options.highlightedItem === undefined && byId !== undefined) {
+      if (byId === null) {
+        if (this.hl?.source === 'controlled') this.setHighlight(null);
+        return;
+      }
+      const key = this.options.idKey;
+      for (const s of this.series) {
+        const pt = s.points.find((p) => {
+          const d = p.datum as Record<string, unknown> | undefined;
+          return d && String(key ? d[key] : (d.id ?? d.key)) === String(byId);
+        });
+        if (pt) return this.setHighlight({ seriesIndex: s.index, dataIndex: pt.index, source: 'controlled' });
+      }
+      return;
+    }
     const h = this.options.highlightedItem;
     if (h === undefined) return;
     if (h === null) {
@@ -1120,6 +1168,11 @@ export class Chart implements Renderable {
     });
     el.addEventListener('click', (e) => {
       const p = this.localPoint(e);
+      const label = this.options.onAxisLabelClick ? this.axisLabelAt(p.x, p.y) : null;
+      if (label) {
+        this.options.onAxisLabelClick!(label.axisId, label.value as string | number, label.index);
+        return;
+      }
       const ann = this.annotationAt(p.x, p.y);
       if (ann) {
         for (const a of ann.annotations) this.options.onAxisAnnotationClick?.(a, ann.axisId);
@@ -1129,7 +1182,7 @@ export class Chart implements Renderable {
       const hit = this.hitTest(p.x, p.y);
       if (hit && hit.distance < 30) {
         const pt = pointOf(hit.series, hit.dataIndex);
-        this.options.onItemClick?.({ seriesId: hit.series.id, dataIndex: hit.dataIndex, datum: pt?.datum, value: pt?.y }, e as PointerEvent);
+        if (!excluded(hit.series.options.excludeDataKeys, pt?.datum)) this.options.onItemClick?.({ seriesId: hit.series.id, dataIndex: hit.dataIndex, datum: pt?.datum, value: pt?.y, markIndex: hit.series.markIndex }, e as PointerEvent);
       }
       if (this.axisHover && this.options.onAxisClick) this.options.onAxisClick({ axisValue: this.axisHover.value, dataIndex: this.axisHover.index }, e as PointerEvent);
     });
@@ -1140,7 +1193,7 @@ export class Chart implements Renderable {
       if (hit) {
         e.preventDefault();
         const pt = pointOf(hit.series, hit.dataIndex);
-        this.options.onItemContextMenu({ seriesId: hit.series.id, dataIndex: hit.dataIndex, datum: pt?.datum }, e);
+        this.options.onItemContextMenu({ seriesId: hit.series.id, dataIndex: hit.dataIndex, datum: pt?.datum, markIndex: hit.series.markIndex }, e);
       }
     });
     el.addEventListener('wheel', (e) => dispatch('onWheel', e, this.localPoint(e)) && e.preventDefault(), { passive: false });
@@ -1189,6 +1242,11 @@ export class Chart implements Renderable {
 
   get resolvedSeries(): ResolvedSeries[] {
     return this.series;
+  }
+
+  /** Index (`ResolvedSeries.index`) of the highlighted series, or null. */
+  get highlightedSeriesIndex(): number | null {
+    return this.hl?.seriesIndex ?? null;
   }
 
   get gpuDevice(): GpuDevice | null {
@@ -1344,6 +1402,18 @@ export class Chart implements Renderable {
     return [...types].every((x) => x === 'line' || x === 'area') && types.size > 0 ? 'axis' : 'item';
   }
 
+  /** Tick label under a plot-element point, when labels are interactive. */
+  private axisLabelAt(x: number, y: number): AxisLabelBox | null {
+    const o = this.options;
+    if (!this.cartesian || (!o.onAxisLabelClick && !o.axisLabelTooltips)) return null;
+    const g = this.overlay.getContext('2d')!;
+    g.font = `${this.theme.fontSize}px ${this.theme.fontFamily}`;
+    const box = hitAxisLabel(this.cartesian, this.theme, x, y, (t) => g.measureText(t).width);
+    const tips = o.axisLabelTooltips;
+    if (box && !o.onAxisLabelClick && tips !== true && !(Array.isArray(tips) && tips.includes(box.axisId))) return null;
+    return box;
+  }
+
   /** Axis annotation under a plot-element point. */
   private annotationAt(x: number, y: number): AxisAnnotationBox | null {
     if (!this.cartesian) return null;
@@ -1353,6 +1423,19 @@ export class Chart implements Renderable {
 
   private handlePointer(x: number, y: number): void {
     if (!this.ctx) return;
+    const label = this.axisLabelAt(x, y);
+    if (label || this.plotEl.title) {
+      // Full label text on hover (native tooltip), pointer cursor for clickable labels.
+      const tips = this.options.axisLabelTooltips;
+      const showTip = label && (tips === true || (Array.isArray(tips) && tips.includes(label.axisId)));
+      this.plotEl.title = showTip ? label.fullText : '';
+      if (label) {
+        this.plotEl.style.cursor = this.options.onAxisLabelClick ? 'pointer' : '';
+        this.tooltip.hide();
+        if (this.hl?.source === 'pointer') this.setHighlight(null);
+        return;
+      }
+    }
     const ann = this.annotationAt(x, y);
     this.annotationHover = ann;
     this.plotEl.style.cursor = ann ? 'pointer' : '';
@@ -1375,7 +1458,9 @@ export class Chart implements Renderable {
     const plot = this.ctx.plot;
     const inside = x >= plot.x - 4 && x <= plot.x + plot.width + 4 && y >= plot.y - 4 && y <= plot.y + plot.height + 4;
     const trigger = this.tooltipTrigger();
-    const hit = inside || !this.cartesian ? this.hitTest(x, y) : null;
+    const rawHit = inside || !this.cartesian ? this.hitTest(x, y) : null;
+    // Rows flagged by `excludeDataKeys` behave as if nothing were under the pointer.
+    const hit = rawHit && excluded(rawHit.series.options.excludeDataKeys, datumOf(rawHit.series, rawHit.dataIndex)) ? null : rawHit;
     this.axisHover = null;
 
     if (this.cartesian && inside) {
@@ -1399,6 +1484,7 @@ export class Chart implements Renderable {
     const accept = hit && (hit.distance === 0 || (isLine(hit.series) ? hit.distance < 80 : hit.distance < 30));
     if (accept && hit) this.setHighlight({ seriesIndex: hit.series.index, dataIndex: hit.dataIndex, source: 'pointer' });
     else if (this.hl?.source === 'pointer') this.setHighlight(null);
+    this.plotEl.style.cursor = accept && hit && hit.distance < 30 ? (hit.series.options.cursor ?? '') : '';
 
     if (trigger === 'none') {
       this.tooltip.hide();
@@ -1410,13 +1496,20 @@ export class Chart implements Renderable {
     if (trigger === 'axis' && this.axisHover) {
       const items: TooltipItem[] = [];
       for (const r of this.renderers.values()) items.push(...(r.itemsAtIndex?.(this.axisHover.index, this.axisHover.value, this.ctx) ?? []));
+      const byId = new Map(this.series.map((s) => [s.id, s]));
+      for (let i = items.length - 1; i >= 0; i--) {
+        const s = byId.get(items[i].seriesId);
+        items[i].markIndex ??= s?.markIndex;
+        if (s?.options.disableTooltip || excluded(s?.options.excludeDataKeys, items[i].datum)) items.splice(i, 1);
+      }
       if (items.length) {
         const anchor = opts.anchor === 'mark' && hit ? hit.anchor : { x, y };
         tip = { trigger: 'axis', axisValue: this.axisHover.value, axisLabel: this.axisHover.axis.format(this.axisHover.value, 'tooltip'), items, x: anchor.x, y: anchor.y };
       }
-    } else if (accept && hit) {
+    } else if (accept && hit && !hit.series.options.disableTooltip) {
       tip = this.itemTooltip(hit, opts.anchor === 'mark' ? hit.anchor : { x, y });
     }
+    if (tip && opts.filter && !opts.filter(tip)) tip = null;
     if (tip) {
       this.tooltip.show(tip, opts, { width: this.width, height: this.height }, hit?.series.id);
       this.emit('tooltip', tip);
@@ -1444,6 +1537,7 @@ export class Chart implements Renderable {
       items: [
         {
           seriesId: s.id,
+          markIndex: s.markIndex,
           seriesLabel: s.label,
           dataIndex: hit.dataIndex,
           color: pt?.color ? `rgba(${pt.color.map((c, i) => (i < 3 ? Math.round(c * 255) : c)).join(',')})` : s.colorCss,
@@ -1499,7 +1593,7 @@ export class Chart implements Renderable {
         if (!this.focusIndex) return;
         const s = vis[f.series];
         const pt = pointAt(s, f.point);
-        if (pt) this.options.onItemClick?.({ seriesId: s.id, dataIndex: pt.index, datum: pt.datum, value: pt.y }, e as unknown as PointerEvent);
+        if (pt) this.options.onItemClick?.({ seriesId: s.id, dataIndex: pt.index, datum: pt.datum, value: pt.y, markIndex: s.markIndex }, e as unknown as PointerEvent);
         e.preventDefault();
         return;
       }
@@ -1516,8 +1610,14 @@ export class Chart implements Renderable {
     const anchor = this.renderers.get(s.type)?.itemAnchor?.(s.id, pt.index, performance.now());
     if (anchor) {
       const tip = this.itemTooltip({ series: s, dataIndex: pt.index, anchor, distance: 0 }, anchor);
-      this.tooltip.show(tip, { ...this.tooltipOptions(), placement: 'top' }, { width: this.width, height: this.height });
-      this.emit('tooltip', tip);
+      const opts = this.tooltipOptions();
+      if (!s.options.disableTooltip && (!opts.filter || opts.filter(tip))) {
+        this.tooltip.show(tip, { ...opts, placement: 'top' }, { width: this.width, height: this.height });
+        this.emit('tooltip', tip);
+      } else {
+        this.tooltip.hide();
+        this.emit('tooltip', null);
+      }
       this.liveRegion.textContent = `${s.label}, ${tip.axisLabel ? `${tip.axisLabel}, ` : ''}${tip.items[0]?.label ? `${tip.items[0].label}, ` : ''}${tip.items[0]?.formattedValue ?? ''}. ${f.point + 1} of ${pointCount(s)}.`;
     }
   }

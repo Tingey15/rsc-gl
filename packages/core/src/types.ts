@@ -1,6 +1,6 @@
 import type { BackendType, GpuBackend } from '@rsc-gl/gpu';
 import type { EasingName, TransitionOptions } from './animation/easing';
-import type { FormatContext, LocaleOptions, NumberFormat, TimeGranularity } from './format/format';
+import type { FormatContext, LocaleInput, NumberFormat, TimeGranularity } from './format/format';
 import type { DomainLimit, DomainValue, ScaleType } from './scales/scales';
 import type { ChartTheme } from './theme/theme';
 import type { ColorScheme, RGBA } from './theme/colors';
@@ -68,6 +68,12 @@ export interface BaseSeriesOptions {
   opacity?: number;
   /** Rows / items excluded from interaction (tooltip, highlight). */
   excludeFromInteraction?: boolean;
+  /** Rows where any of these fields is truthy get no tooltip and no hover highlight. */
+  excludeDataKeys?: string[];
+  /** Hovering this series shows no tooltip (other series still do). */
+  disableTooltip?: boolean;
+  /** CSS cursor while an item of this series is under the pointer (e.g. 'pointer' for clickable marks). */
+  cursor?: string;
   animation?: boolean | Partial<TransitionOptions>;
 }
 
@@ -84,8 +90,15 @@ export interface BarSeriesOptions extends BaseSeriesOptions {
   borderWidth?: number;
   borderColor?: ColorInput;
   minBarSize?: number;
-  barLabel?: 'value' | ((item: { value: number | null; dataIndex: number; seriesId: string }) => string | null);
-  barLabelPlacement?: 'center' | 'inside-end' | 'outside';
+  barLabel?: 'value' | ((item: { value: number | null; dataIndex: number; seriesId: string; datum?: Datum }) => string | null);
+  /** 'start' sits inside the bar near its base; 'outside' past its end. */
+  barLabelPlacement?: 'start' | 'center' | 'inside-end' | 'outside';
+  /** Draws labels on a filled badge (bar annotations). */
+  barLabelBadge?: boolean;
+  /** Labels that do not fit: hide them (default) or let them spill past the bar. */
+  barLabelOverflow?: 'hide' | 'spill';
+  /** Number format for `barLabel: 'value'`. */
+  barLabelFormat?: NumberFormat;
 }
 
 export type CurveType =
@@ -113,7 +126,7 @@ export interface LineSeriesOptions extends BaseSeriesOptions {
   gradient?: boolean;
   baseline?: number | 'min' | 'max';
   stack?: string;
-  showMark?: boolean | 'start' | 'end' | ((p: { index: number; value: number | null }) => boolean);
+  showMark?: boolean | 'start' | 'end' | ((p: { index: number; value: number | null; datum?: Datum }) => boolean);
   markShape?: SymbolShape;
   markSize?: SymbolSize;
   hollowMarks?: boolean;
@@ -138,6 +151,12 @@ export interface MetricRangeOptions {
   rangeOpacity?: number;
   /** Only show the range while its series is highlighted. */
   displayOnHover?: boolean;
+  /** Widen the value axis so the whole range is visible. Default true. */
+  scaleAxisToFit?: boolean;
+  /** Width of the range boundary lines in px. Default 1. */
+  lineWidth?: number;
+  /** Opacity of the range boundary lines. Default 1. */
+  lineOpacity?: number;
 }
 
 export interface AreaSeriesOptions extends BaseSeriesOptions {
@@ -204,6 +223,14 @@ export interface PieSeriesOptions extends BaseSeriesOptions {
   sortingValues?: 'none' | 'asc' | 'desc';
   arcLabel?: 'value' | 'formattedValue' | 'label' | 'percent' | ((item: PieDatum & { percent: number }) => string);
   arcLabelMinAngle?: number;
+  /** A second line under the arc label (e.g. the value or percent under the category). */
+  arcLabelSecondary?: 'value' | 'formattedValue' | 'percent';
+  /** Datum field used for `arcLabel: 'label'`. */
+  arcLabelField?: string;
+  /** Labels inside the ring (default) or outside it. */
+  arcLabelPosition?: 'inside' | 'outside';
+  /** Number format for percent labels. Default '.0%'. */
+  percentFormat?: NumberFormat;
   /** Content drawn in the center of a donut. */
   centerLabel?: string | ((total: number) => string);
   centerSubLabel?: string;
@@ -231,15 +258,44 @@ export interface AxisOptions {
   data?: ReadonlyArray<DomainValue>;
   dataKey?: string;
   position?: AxisPosition;
-  label?: string;
+  /** Axis title. An array draws one line per entry. */
+  label?: string | string[];
   min?: number | Date;
   max?: number | Date;
   reverse?: boolean;
   domainLimit?: DomainLimit;
+  /** Target tick count (continuous axes). */
   tickNumber?: number;
+  /**
+   * Upper limit on the tick count (continuous axes). As in the legacy library the
+   * first (base) tick is not counted: `0, 1, 2, 3` is three ticks.
+   */
+  maxTicks?: number;
+  /** Lower limit on the tick count (continuous axes), counted like `maxTicks`. */
+  minTicks?: number;
+  /** Minimum step between ticks in domain units (numeric, non-log axes). */
+  tickMinStep?: number;
   /** Explicit tick values. */
   tickValues?: ReadonlyArray<DomainValue>;
+  /**
+   * Explicit ticks: only these are drawn. An object can set the label text, its
+   * alignment and its font weight. Overrides `tickValues`.
+   */
+  labels?: ReadonlyArray<
+    DomainValue | { value: DomainValue; label?: string; align?: 'start' | 'center' | 'end'; fontWeight?: 'normal' | 'bold' | number }
+  >;
+  /** A second label line under the tick labels with matching values. */
+  subLabels?: ReadonlyArray<{ value: DomainValue; subLabel: string; align?: 'start' | 'center' | 'end'; fontWeight?: 'normal' | 'bold' | number }>;
+  /** Alignment of every tick label within its band (or around its tick). Default 'center'. */
+  labelAlign?: 'start' | 'center' | 'end';
+  /** Font weight of every tick label. Default 'normal'. */
+  labelFontWeight?: 'normal' | 'bold' | number;
+  /** ISO 4217 code used by the `currency` / `shortCurrency` number formats (e.g. 'EUR'). */
+  currencyCode?: string;
+  /** BCP 47 locale for the currency symbol's placement (e.g. 'de-DE'). */
+  currencyLocale?: string;
   tickSize?: number;
+  /** Tick label rotation in degrees (x and y axes); -90 draws vertical labels. */
   tickLabelAngle?: number;
   disableLine?: boolean;
   disableTicks?: boolean;
@@ -250,11 +306,17 @@ export interface AxisOptions {
   valueFormatter?: (value: DomainValue, context: FormatContext) => string;
   numberFormat?: NumberFormat;
   labelFormat?: 'linear' | 'percentage' | 'duration' | 'time';
+  /** Time axes: the label format and the tick interval (one tick per day, week, month, ...). */
   granularity?: TimeGranularity;
   categoryGapRatio?: number;
+  /** Band axes: outer padding as a fraction of the step. Default half of `categoryGapRatio`. */
+  categoryOuterGapRatio?: number;
   barGapRatio?: number;
-  /** Max label width in px before truncation (ordinal axes). */
-  labelLimit?: number;
+  /**
+   * Max label width in px before truncation with an ellipsis (ordinal axes).
+   * `'band'` truncates to the band step.
+   */
+  labelLimit?: number | 'band';
   /** Enables wheel / drag zoom on this axis (continuous axes). */
   zoom?: boolean | { minSpan?: number; maxSpan?: number; slider?: boolean };
   /**
@@ -310,6 +372,10 @@ export interface PointAnnotationOptions {
   /** y value; when omitted it is read from `seriesId` at `x`. */
   y?: number;
   seriesId?: string;
+  /** Restricts the `seriesId` lookup to series of this entry of `ChartOptions.series`. */
+  markIndex?: number;
+  /** Badge in the series color (default) or plain text in the theme text color. */
+  matchLineColor?: boolean;
   label: string;
   color?: ColorInput;
   /** Side of the point the label sits on. Default 'top'. */
@@ -325,8 +391,9 @@ export interface PointAnnotationOptions {
 /** Lines connecting scatter points (trajectories, before/after pairs). */
 export interface ScatterPathOptions {
   seriesId?: string;
-  /** Datum field that splits points into separate paths. */
-  groupBy?: string;
+  markIndex?: number;
+  /** Datum field(s) that split points into separate paths. */
+  groupBy?: string | string[];
   /** Order points by x or keep data order. Default 'data'. */
   order?: 'data' | 'x';
   color?: ColorInput;
@@ -338,9 +405,11 @@ export interface ScatterPathOptions {
 /** Text labels next to scatter points, skipping labels that would overlap. */
 export interface ScatterLabelOptions {
   seriesId?: string;
+  markIndex?: number;
   /** Datum field to show; defaults to the point's y value. */
   field?: string;
-  position?: 'right' | 'left' | 'top' | 'bottom';
+  /** Side of the point; a list is tried in order until a label fits. */
+  position?: 'right' | 'left' | 'top' | 'bottom' | ('right' | 'left' | 'top' | 'bottom')[];
   /** Only label these data indices. */
   indices?: number[];
   format?: (value: unknown) => string;
@@ -352,6 +421,12 @@ export interface LegendOptions {
   title?: string;
   /** Click toggles series visibility. */
   toggleable?: boolean;
+  /** Entries are buttons that report clicks (`onLegendClick`) even when not toggleable. */
+  clickable?: boolean;
+  /** Max label width in px (ellipsis beyond; the full text stays in the title attribute). */
+  labelLimit?: number;
+  /** Max title width in px. */
+  titleLimit?: number;
   /** Hover highlights the series. */
   highlight?: boolean;
   /** Overrides displayed labels by series id. */
@@ -372,6 +447,8 @@ export interface TooltipContext {
 
 export interface TooltipItem {
   seriesId: string;
+  /** Index of the series options (`ChartOptions.series`) that produced this item. */
+  markIndex?: number;
   seriesLabel: string;
   dataIndex: number;
   color: string;
@@ -390,6 +467,8 @@ export interface TooltipOptions {
   customContent?: boolean;
   /** Plain DOM rendering hook. */
   render?: (ctx: TooltipContext) => string | HTMLElement | null;
+  /** Return false to show no tooltip for this context (also applies with `customContent`). */
+  filter?: (ctx: TooltipContext) => boolean;
   sort?: 'none' | 'asc' | 'desc';
 }
 
@@ -421,6 +500,16 @@ export type TrendlineMethod =
 export interface TrendlineOptions {
   /** Series the trendline is computed from (default: every visible cartesian series). */
   seriesId?: string;
+  /** Only series produced by this entry of `ChartOptions.series`. */
+  markIndex?: number;
+  /** Only drawn while its series is highlighted. */
+  displayOnHover?: boolean;
+  /** Rows where any of these fields is truthy are left out of the fit. */
+  excludeDataKeys?: string[];
+  /** Moving averages: skip the first points that have no full window (default true). */
+  hidePartialWindows?: boolean;
+  /** Draws the label on a filled badge. */
+  labelBadge?: boolean;
   method?: TrendlineMethod;
   color?: ColorInput;
   lineType?: LineType;
@@ -444,6 +533,12 @@ export interface ReferenceLineOptions {
   axisId?: string;
   label?: string;
   labelAlign?: 'start' | 'middle' | 'end';
+  /** 'axis' draws the label outside the plot, next to the axis. */
+  labelPlacement?: 'plot' | 'axis';
+  labelColor?: ColorInput;
+  labelFontWeight?: 'normal' | 'bold' | number;
+  /** On band axes: at the start, center (default) or end of the band. */
+  bandPosition?: 'before' | 'center' | 'after';
   color?: ColorInput;
   lineType?: LineType;
   lineWidth?: number;
@@ -454,6 +549,7 @@ export interface TitleOptions {
   text: string;
   subtitle?: string;
   align?: 'start' | 'middle' | 'end';
+  fontWeight?: 'normal' | 'bold' | number;
 }
 
 export interface AnimationOptions extends Partial<TransitionOptions> {
@@ -503,7 +599,7 @@ export interface ChartOptions {
   theme?: Partial<ChartTheme>;
   backgroundColor?: ColorInput;
   margin?: Partial<Margin>;
-  locale?: string | LocaleOptions;
+  locale?: LocaleInput;
   animation?: boolean | AnimationOptions;
   /** Controlled hidden series ids. */
   hiddenSeries?: string[];
@@ -511,14 +607,28 @@ export interface ChartOptions {
   defaultHiddenSeries?: string[];
   /** Controlled highlight. `null` clears; `undefined` leaves it uncontrolled. */
   highlightedItem?: ItemIdentifier | null;
+  /** Controlled highlight by row id (the `idKey` field); used when `highlightedItem` is unset. */
+  highlightedId?: string | number | null;
+  /** Row field that identifies a datum (item keys, `highlightedId`). Default `id`, then `key`. */
+  idKey?: string;
+  /** Labels next to the end (or start) of each line / area series (requires the annotations plugin). */
+  directLabels?: boolean | import('./plugins/annotations').DirectLabelOptions;
   highlightScope?: HighlightScopeOptions;
   axisHighlight?: { x?: 'none' | 'line' | 'band'; y?: 'none' | 'line' | 'band' };
   loading?: boolean;
   noDataText?: string;
   loadingText?: string;
   keyboardNavigation?: boolean;
-  onItemClick?: (item: ItemIdentifier & { datum?: Datum; value?: number | null }, event: PointerEvent) => void;
-  onItemContextMenu?: (item: ItemIdentifier & { datum?: Datum }, event: MouseEvent) => void;
+  onItemClick?: (item: ItemIdentifier & { datum?: Datum; value?: number | null; markIndex?: number }, event: PointerEvent) => void;
+  onItemContextMenu?: (item: ItemIdentifier & { datum?: Datum; markIndex?: number }, event: MouseEvent) => void;
+  /** Pointer enters (item) or leaves (null) a mark. */
+  onItemHover?: (item: (ItemIdentifier & { datum?: Datum; markIndex?: number }) | null) => void;
+  /** Pointer enters (id) or leaves (null) a legend entry. */
+  onLegendHover?: (seriesId: string | null) => void;
+  /** A tick label was clicked. */
+  onAxisLabelClick?: (axisId: string, value: string | number, index: number) => void;
+  /** Axis ids (or all axes) whose labels show their full text on hover. */
+  axisLabelTooltips?: boolean | string[];
   onAxisClick?: (data: { axisValue: DomainValue; dataIndex: number }, event: PointerEvent) => void;
   onHighlightChange?: (item: ItemIdentifier | null) => void;
   onHiddenSeriesChange?: (hidden: string[]) => void;

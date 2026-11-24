@@ -1,10 +1,19 @@
-import { inferGranularity, type Formatter, type TimeGranularity } from '../format/format';
-import { createScale, isOrdinal, isTimeScale, type DomainValue, type ScaleType } from '../scales/scales';
+import { inferGranularity, type Formatter, type NumberFormatOptions, type TimeGranularity } from '../format/format';
+import { createScale, GRANULARITY_MS, isOrdinal, isTimeScale, timeTickInterval, type DomainValue, type ScaleType } from '../scales/scales';
 import type { AxisRequirement, Rect, ResolvedAxis, ResolvedSeries, SeriesDefinition } from '../series/types';
 import type { ChartTheme } from '../theme/theme';
 import type { AxisOptions, Datum, Margin } from '../types';
 import { ANNOTATION_LANE as LANE, drawAnnotations, drawGroups, drawThumb, groupRuns } from './axis-extras';
 import { maxOf } from '../data/extent';
+
+/** Alignment of a tick label within its band (or around its tick). */
+export type AxisLabelAlign = 'start' | 'center' | 'end';
+/** Font weight of a tick label. */
+export type AxisLabelFontWeight = 'normal' | 'bold' | number;
+/** One entry of `AxisOptions.labels`. */
+export type AxisLabelEntry = NonNullable<AxisOptions['labels']>[number];
+/** One entry of `AxisOptions.subLabels`. */
+export type AxisSubLabelEntry = NonNullable<AxisOptions['subLabels']>[number];
 
 export interface AxisTick {
   value: DomainValue;
@@ -15,6 +24,16 @@ export interface AxisTick {
   sub: string;
   /** Label opacity (tick transitions). */
   alpha?: number;
+  /** Untruncated label text; set only when `label` was truncated. */
+  fullLabel?: string;
+  /** Per-label alignment (from `labels`); falls back to the axis `labelAlign`. */
+  align?: AxisLabelAlign;
+  /** Per-label font weight (from `labels`); falls back to the axis `labelFontWeight`. */
+  fontWeight?: AxisLabelFontWeight;
+  /** Explicit second line (from `subLabels`). */
+  subLabel?: string;
+  subAlign?: AxisLabelAlign;
+  subFontWeight?: AxisLabelFontWeight;
 }
 
 export interface AxisLayout extends ResolvedAxis {
@@ -126,7 +145,25 @@ export function axisCategories(axis: AxisOptions | undefined, dataset: ReadonlyA
   return undefined;
 }
 
+/** The axis title as lines (`label` may be a string or an array of lines). */
+export function axisTitleLines(label: AxisOptions['label']): string[] {
+  if (label === undefined || label === null || label === '') return [];
+  return Array.isArray(label) ? label.filter((l) => l !== undefined && l !== null).map(String) : [String(label)];
+}
+
+/** The axis title as one string (array titles joined with a space), for text exports and descriptions. */
+export function axisTitleText(label: AxisOptions['label']): string | undefined {
+  const lines = axisTitleLines(label);
+  return lines.length ? lines.join(' ') : undefined;
+}
+
+/** Currency options of an axis, or undefined when none are set. */
+export function axisNumberOptions(axis: AxisOptions): NumberFormatOptions | undefined {
+  return axis.currencyCode || axis.currencyLocale ? { currencyCode: axis.currencyCode, currencyLocale: axis.currencyLocale } : undefined;
+}
+
 function makeFormat(axis: AxisOptions, scaleType: ScaleType, formatter: Formatter, granularity: () => TimeGranularity | undefined) {
+  const numOpts = axisNumberOptions(axis);
   return (value: DomainValue, location: 'tick' | 'tooltip'): string => {
     if (axis.valueFormatter) return axis.valueFormatter(value, { location });
     if (isOrdinal(scaleType)) {
@@ -135,7 +172,7 @@ function makeFormat(axis: AxisOptions, scaleType: ScaleType, formatter: Formatte
         const [a, b] = formatter.timeTick(value, g);
         return location === 'tooltip' && b ? `${a} ${b}` : a;
       }
-      if (typeof value === 'number' && axis.numberFormat) return formatter.number(value, axis.numberFormat);
+      if (typeof value === 'number' && axis.numberFormat) return formatter.number(value, axis.numberFormat, numOpts);
       return String(value);
     }
     const n = Number(value);
@@ -146,7 +183,7 @@ function makeFormat(axis: AxisOptions, scaleType: ScaleType, formatter: Formatte
     }
     if (axis.labelFormat === 'percentage') return formatter.number(n, '~%');
     if (axis.labelFormat === 'duration') return formatter.duration(n);
-    if (axis.numberFormat) return formatter.number(n, axis.numberFormat);
+    if (axis.numberFormat) return formatter.number(n, axis.numberFormat, numOpts);
     if (location === 'tick') return Math.abs(n) >= 10000 ? formatter.number(n, 'shortNumber') : formatter.number(n);
     return formatter.number(n);
   };
@@ -227,18 +264,137 @@ function uniqueStr(values: DomainValue[]): DomainValue[] {
   return out;
 }
 
+/* ----------------------------------------------------------------------------
+ * Tick values
+ * ------------------------------------------------------------------------- */
+
+/** A value as the scale sees it: dates become ms, ISO strings on time axes are parsed. */
+function scaleValue(v: DomainValue, scaleType: ScaleType): DomainValue {
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === 'string' && isTimeScale(scaleType)) {
+    const t = Date.parse(v);
+    return Number.isFinite(t) ? t : v;
+  }
+  return v;
+}
+
+/** Key used to match `labels` / `subLabels` entries to ticks. */
+function valueKey(v: DomainValue, scaleType: ScaleType): string {
+  const s = scaleValue(v, scaleType);
+  return isOrdinal(scaleType) ? String(s) : String(Number(s));
+}
+
+interface LabelSpec {
+  value: DomainValue;
+  label?: string;
+  align?: AxisLabelAlign;
+  fontWeight?: AxisLabelFontWeight;
+}
+
+function explicitLabels(o: AxisOptions, scaleType: ScaleType): LabelSpec[] | null {
+  if (!o.labels || o.labels.length === 0) return null;
+  const out: LabelSpec[] = [];
+  for (const entry of o.labels) {
+    if (entry === null || entry === undefined) continue;
+    if (typeof entry === 'object' && !(entry instanceof Date)) {
+      out.push({ value: scaleValue(entry.value, scaleType), label: entry.label, align: entry.align, fontWeight: entry.fontWeight });
+    } else out.push({ value: scaleValue(entry, scaleType) });
+  }
+  return out;
+}
+
+const isBold = (w: AxisLabelFontWeight | undefined) => w === 'bold' || (typeof w === 'number' && w >= 600);
+/** Text width at a weight (bold text is measured about 8% wider). */
+const widthAt = (measure: Measure, text: string, weight: AxisLabelFontWeight | undefined) => measure(text) * (isBold(weight) ? 1.08 : 1);
+
+const limited = (o: AxisOptions) => o.maxTicks !== undefined || o.minTicks !== undefined;
+const autoCount = (direction: 'x' | 'y', length: number) => Math.max(2, Math.floor(Math.abs(length) / (direction === 'x' ? 90 : 44)));
+
+/** The requested tick count, clamped to `minTicks` / `maxTicks`. */
+function targetCount(o: AxisOptions, direction: 'x' | 'y', length: number): number {
+  let count = o.tickNumber ?? autoCount(direction, length);
+  if (o.maxTicks !== undefined) count = Math.min(count, Math.max(1, Math.floor(o.maxTicks)));
+  if (o.minTicks !== undefined) count = Math.max(count, Math.floor(o.minTicks));
+  return Math.max(1, count);
+}
+
+const supportsMinStep = (t: ScaleType) => t === 'linear' || t === 'pow' || t === 'sqrt' || t === 'symlog';
+
+/**
+ * Ticks of a continuous axis. Follows the legacy library: the count is a target
+ * clamped to `minTicks`..`maxTicks` (the base tick is not counted), and
+ * `tickMinStep` lowers the count to at most span / step. `maxTicks` is then
+ * enforced as a hard limit.
+ */
+function continuousTicks(axis: AxisLayout, length: number, measure: Measure, theme: ChartTheme): DomainValue[] {
+  const o = axis.options;
+  const s = axis.scale;
+  if (isTimeScale(axis.scaleType) && o.granularity && o.tickNumber === undefined && !limited(o)) return granularityTicks(axis, o.granularity, length, measure, theme);
+  const minStep = supportsMinStep(axis.scaleType) && o.tickMinStep !== undefined && o.tickMinStep > 0 ? o.tickMinStep : undefined;
+  if (!limited(o) && minStep === undefined) return s.ticks(o.tickNumber ?? autoCount(axis.direction, length));
+  let count = targetCount(o, axis.direction, length);
+  if (minStep !== undefined) {
+    const d = s.domain().map(Number);
+    count = Math.min(count, Math.floor(Math.abs(d[d.length - 1] - d[0]) / minStep) || 1);
+  }
+  const max = o.maxTicks !== undefined ? Math.max(0, Math.floor(o.maxTicks)) : Infinity;
+  const intervals = (v: DomainValue[]) => Math.max(0, v.length - 1);
+  const stepOf = (v: DomainValue[]) => (v.length > 1 ? Math.abs(Number(v[1]) - Number(v[0])) : Infinity);
+  const tooSmall = (v: DomainValue[]) => minStep !== undefined && stepOf(v) < minStep * (1 - 1e-9);
+  let values = s.ticks(count);
+  for (let c = count; c > 1 && (intervals(values) > max || tooSmall(values)); ) values = s.ticks(--c);
+  if (o.minTicks !== undefined) {
+    const min = Math.floor(o.minTicks);
+    for (let c = count + 1; intervals(values) < min && c <= count + 40; c++) {
+      const next = s.ticks(c);
+      if (intervals(next) > max || tooSmall(next)) break;
+      if (next.length > values.length) values = next;
+    }
+  }
+  if (intervals(values) > max) {
+    if (max <= 0) values = values.slice(0, 1);
+    else {
+      const k = Math.ceil(intervals(values) / max);
+      values = values.filter((_, i) => i % k === 0);
+    }
+  }
+  return values;
+}
+
+/** Time ticks at a granularity's interval, taking every n-th unit when they would not fit. */
+function granularityTicks(axis: AxisLayout, g: TimeGranularity, length: number, measure: Measure, theme: ChartTheme): DomainValue[] {
+  const s = axis.scale;
+  const utc = axis.scaleType === 'utc';
+  axis.granularity = g;
+  const d = s.domain().map(Number);
+  const span = Math.abs(d[d.length - 1] - d[0]);
+  const fh = theme.fontSize * 1.25;
+  let slot: number;
+  if (axis.direction === 'x') {
+    const sample = Math.max(measure(axis.format(d[0], 'tick')), measure(axis.format(d[d.length - 1], 'tick')));
+    slot = sample + 16;
+  } else slot = fh + 8;
+  const fit = Math.max(1, Math.floor(Math.abs(length) / Math.max(1, slot)));
+  const estimate = span / GRANULARITY_MS[g];
+  let step = Math.max(1, Math.ceil(estimate / fit));
+  let values = s.ticks(timeTickInterval(g, utc, step));
+  for (let i = 0; i < 12 && values.length > fit + 1; i++) {
+    step = Math.max(step + 1, Math.ceil((step * values.length) / (fit + 1)));
+    values = s.ticks(timeTickInterval(g, utc, step));
+  }
+  return values;
+}
+
 function computeTicks(axis: AxisLayout, length: number, measure: Measure, theme: ChartTheme): void {
   const o = axis.options;
   const s = axis.scale;
   const ordinal = isOrdinal(axis.scaleType);
+  const explicit = explicitLabels(o, axis.scaleType);
   let values: DomainValue[];
-  if (o.tickValues) values = [...o.tickValues];
+  if (explicit) values = explicit.map((e) => e.value);
+  else if (o.tickValues) values = [...o.tickValues];
   else if (ordinal) values = s.domain();
-  else {
-    const spacing = axis.direction === 'x' ? 90 : 44;
-    const count = o.tickNumber ?? Math.max(2, Math.floor(Math.abs(length) / spacing));
-    values = s.ticks(count);
-  }
+  else values = continuousTicks(axis, length, measure, theme);
   if (isTimeScale(axis.scaleType)) {
     const d = s.domain().map(Number);
     axis.granularity = o.granularity ?? inferGranularity(Math.abs(d[1] - d[0]), Math.max(1, values.length));
@@ -247,10 +403,11 @@ function computeTicks(axis: AxisLayout, length: number, measure: Measure, theme:
   }
   const half = ordinal ? s.bandwidth() / 2 : 0;
   let prevSub = '';
-  const ticks: AxisTick[] = values.map((v) => {
-    let label = axis.format(v, 'tick');
+  let ticks: AxisTick[] = values.map((v, i) => {
+    const spec = explicit?.[i];
+    let label = spec?.label !== undefined ? spec.label : axis.format(v, 'tick');
     let sub = '';
-    if (axis.granularity && axis.direction === 'x' && !o.valueFormatter) {
+    if (axis.granularity && axis.direction === 'x' && !o.valueFormatter && spec?.label === undefined) {
       const parts = timeTickParts(v, axis);
       if (parts) {
         label = parts[0];
@@ -258,18 +415,33 @@ function computeTicks(axis: AxisLayout, length: number, measure: Measure, theme:
         prevSub = parts[1];
       }
     }
-    return { value: v, pos: s.map(v) + half, label, sub };
+    const tick: AxisTick = { value: v, pos: s.map(v) + half, label, sub };
+    if (spec?.align) tick.align = spec.align;
+    if (spec?.fontWeight !== undefined) tick.fontWeight = spec.fontWeight;
+    return tick;
   });
+  // Explicit labels outside the scale's domain are dropped.
+  if (explicit) ticks = ticks.filter((t) => Number.isFinite(t.pos));
+  if (o.subLabels?.length) {
+    const subs = new Map(o.subLabels.map((e) => [valueKey(e.value, axis.scaleType), e]));
+    for (const t of ticks) {
+      const e = subs.get(valueKey(t.value, axis.scaleType));
+      if (!e || e.subLabel === undefined || e.subLabel === null) continue;
+      t.subLabel = String(e.subLabel);
+      if (e.align) t.subAlign = e.align;
+      if (e.fontWeight !== undefined) t.subFontWeight = e.fontWeight;
+    }
+  }
   // Log axes: with many ticks, label only the powers of ten (the rest keep their grid lines).
-  if (axis.scaleType === 'log' && ticks.length > 8)
+  if (axis.scaleType === 'log' && ticks.length > 8 && !explicit)
     ticks.forEach((t) => {
       const l = Math.log10(Math.abs(Number(t.value)));
       if (Math.abs(l - Math.round(l)) > 1e-6) t.label = '';
     });
-  // Thin ordinal labels when they would overlap.
-  if (ordinal && axis.direction === 'x' && ticks.length > 1 && !o.tickLabelAngle) {
+  // Thin ordinal labels when they would overlap (not for explicit labels, or labels truncated to the band).
+  if (ordinal && axis.direction === 'x' && ticks.length > 1 && !o.tickLabelAngle && !explicit && o.labelLimit !== 'band') {
     const step = Math.abs(s.step()) || 1;
-    const widest = maxOf(ticks.map((t) => measure(t.label)));
+    const widest = maxOf(ticks.map((t) => widthAt(measure, t.label, t.fontWeight ?? o.labelFontWeight)));
     const every = Math.max(1, Math.ceil((widest + 8) / step));
     if (every > 1) {
       // Numeric categories (timestamps) thin by value, so labels stay put while a live window slides.
@@ -280,9 +452,10 @@ function computeTicks(axis: AxisLayout, length: number, measure: Measure, theme:
       else ticks.forEach((t, i) => i % every !== 0 && (t.label = ''));
     }
   }
-  if (ordinal && axis.direction === 'y' && ticks.length > 1) {
+  if (ordinal && axis.direction === 'y' && ticks.length > 1 && !explicit) {
     const step = Math.abs(s.step()) || 1;
-    const every = Math.max(1, Math.ceil((theme.fontSize + 4) / step));
+    const rows = !o.tickLabelAngle && ticks.some((t) => t.subLabel) ? 2 : 1;
+    const every = Math.max(1, Math.ceil(((theme.fontSize + 4) * rows) / step));
     if (every > 1) ticks.forEach((t, i) => i % every !== 0 && (t.label = ''));
   }
   axis.ticks = ticks;
@@ -304,6 +477,22 @@ function truncate(text: string, max: number, measure: Measure): string {
     else hi = mid - 1;
   }
   return text.slice(0, lo) + '…';
+}
+
+const angleOf = (o: AxisOptions) => o.tickLabelAngle ?? 0;
+const isRightAngle = (deg: number) => Math.abs(Math.abs(deg) - 90) < 1e-6;
+/** Whether labels run along the axis (x: horizontal text; y: text rotated by 90 degrees). */
+const parallelLabels = (a: AxisLayout) => (a.direction === 'x' ? !angleOf(a.options) : isRightAngle(angleOf(a.options)));
+
+/**
+ * Label width limit in px. `'band'` gives the band step on ordinal axes whose
+ * labels run along the axis; otherwise the defaults apply (y: 160, rotated x: 140).
+ */
+function labelLimitPx(a: AxisLayout, fallback: number): number {
+  const l = a.options.labelLimit;
+  if (typeof l === 'number') return l;
+  if (l === 'band' && isOrdinal(a.scaleType) && parallelLabels(a)) return Math.max(0, (Math.abs(a.scale.step()) || 0) - 4);
+  return fallback;
 }
 
 export interface CartesianInput {
@@ -350,12 +539,14 @@ export function layoutCartesian(input: CartesianInput): CartesianLayout {
       domain,
       range,
       paddingInner: o.categoryGapRatio ?? (seed.scaleType === 'band' ? 0.2 : undefined),
+      paddingOuter: o.categoryOuterGapRatio,
       min: zoomed ? zoomed[0] : o.min,
       max: zoomed ? zoomed[1] : o.max,
       reverse: o.reverse,
       // Time axes default to the exact data extent so series span the full width.
       domainLimit: zoomed ? 'strict' : (o.domainLimit ?? (isTimeScale(seed.scaleType) ? 'strict' : 'nice')),
-      tickNumber: o.tickNumber,
+      // With tick limits the domain is rounded to the same count as the ticks.
+      tickNumber: limited(o) ? targetCount(o, seed.direction, range[1] - range[0]) : o.tickNumber,
     });
     const layout: AxisLayout = {
       id: seed.id,
@@ -378,7 +569,8 @@ export function layoutCartesian(input: CartesianInput): CartesianLayout {
     if (a.position === 'none') return 0;
     const o = a.options;
     const tick = o.disableTicks ? 0 : (o.tickSize ?? 6);
-    const labelExtra = o.label ? fh + 6 : 0;
+    const titleLines = axisTitleLines(o.label).length;
+    const labelExtra = titleLines ? titleLines * fh + 6 : 0;
     const ts = o.thumbnails ? (o.thumbnails.size ?? 24) : 0;
     const hideText = o.hideTickLabels || o.thumbnails?.hideLabel;
     const groups = isOrdinal(a.scaleType) ? (o.groups ?? []) : [];
@@ -386,14 +578,20 @@ export function layoutCartesian(input: CartesianInput): CartesianLayout {
     let c = tick + (o.hideTickLabels && !ts ? 2 : 4);
     if (ts) c += ts + 4;
     box.label = c;
+    const weight = (t: AxisTick) => t.fontWeight ?? o.labelFontWeight;
+    const subWidth = (t: AxisTick) => (t.subLabel ? widthAt(measure, t.subLabel, t.subFontWeight ?? o.labelFontWeight) : 0);
+    const hasSubLabels = a.ticks.some((t) => t.subLabel);
+    const angle = angleOf(o);
     if (a.direction === 'x') {
       if (!hideText) {
         const twoRows = a.ticks.some((t) => t.sub);
-        let h = fh;
-        if (o.tickLabelAngle) {
-          const ang = (Math.abs(o.tickLabelAngle) * Math.PI) / 180;
-          const w = Math.max(0, maxOf(a.ticks.map((t) => Math.min(o.labelLimit ?? 140, measure(t.label)))));
-          h = w * Math.sin(ang) + fh * Math.cos(ang);
+        let h = fh * (hasSubLabels && !angle ? 2 : 1);
+        if (angle) {
+          const ang = (Math.abs(angle) * Math.PI) / 180;
+          const limit = labelLimitPx(a, 140);
+          const w = Math.max(0, maxOf(a.ticks.map((t) => Math.max(Math.min(limit, widthAt(measure, t.label, weight(t))), subWidth(t)))));
+          const lines = hasSubLabels ? 2 : 1;
+          h = w * Math.sin(ang) + lines * fh * Math.abs(Math.cos(ang));
         }
         box.labelBlock = h + (twoRows ? fh : 0);
       }
@@ -401,7 +599,17 @@ export function layoutCartesian(input: CartesianInput): CartesianLayout {
       box.group = c;
       for (let i = 0; i < groups.length; i++) box.groupSizes.push(fh + 10);
     } else {
-      if (!hideText) box.labelBlock = Math.max(0, maxOf(a.ticks.map((t) => Math.min(o.labelLimit ?? 160, measure(t.label))))) + 2;
+      if (!hideText) {
+        const lines = hasSubLabels ? 2 : 1;
+        const limit = labelLimitPx(a, 160);
+        const w = Math.max(0, maxOf(a.ticks.map((t) => Math.max(Math.min(limit, widthAt(measure, t.label, weight(t))), subWidth(t)))));
+        if (!angle) box.labelBlock = w + 2;
+        else if (isRightAngle(angle)) box.labelBlock = lines * fh + 2;
+        else {
+          const ang = (Math.abs(angle) * Math.PI) / 180;
+          box.labelBlock = w * Math.abs(Math.cos(ang)) + lines * fh * Math.sin(ang) + 2;
+        }
+      }
       c += box.labelBlock;
       box.group = c;
       for (const level of groups) {
@@ -437,7 +645,12 @@ export function layoutCartesian(input: CartesianInput): CartesianLayout {
   offsets(yAxes);
   // Room for the last x tick label overhanging the plot.
   const lastX = xAxes[0]?.ticks[xAxes[0].ticks.length - 1];
-  const overhang = lastX && !isOrdinal(xAxes[0].scaleType) ? measure(lastX.label) / 2 : 0;
+  let overhang = 0;
+  if (lastX && !isOrdinal(xAxes[0].scaleType)) {
+    const al = lastX.align ?? xAxes[0].options.labelAlign ?? 'center';
+    const w = widthAt(measure, lastX.label, lastX.fontWeight ?? xAxes[0].options.labelFontWeight);
+    overhang = al === 'start' ? w : al === 'end' ? 0 : w / 2;
+  }
   const plot: Rect = {
     x: m.left + side.left,
     y: m.top + side.top + (yAxes.length && side.top === 0 ? fh / 2 : 0),
@@ -458,13 +671,232 @@ export function layoutCartesian(input: CartesianInput): CartesianLayout {
     a.size = prev.size;
     a.offset = prev.offset;
     a.box = prev.box;
-    // Ordinal labels never overflow their reserved width: truncate with an ellipsis.
+    // Ordinal labels never overflow their reserved width: truncate with an ellipsis and keep the full text.
     if (isOrdinal(a.scaleType)) {
-      const limit = a.options.labelLimit ?? (a.direction === 'y' ? 160 : a.options.tickLabelAngle ? 140 : Infinity);
-      if (Number.isFinite(limit)) a.ticks.forEach((t) => (t.label = truncate(t.label, limit, measure)));
+      const limit = labelLimitPx(a, a.direction === 'y' ? 160 : a.options.tickLabelAngle ? 140 : Infinity);
+      if (Number.isFinite(limit))
+        a.ticks.forEach((t) => {
+          const full = t.label;
+          const weight = t.fontWeight ?? a.options.labelFontWeight;
+          t.label = truncate(full, limit, (s) => widthAt(measure, s, weight));
+          if (t.label !== full) t.fullLabel = full;
+        });
     }
   }
   return { plot, xAxes, yAxes };
+}
+
+/* ----------------------------------------------------------------------------
+ * Label placement (shared by drawing and hit-testing)
+ * ------------------------------------------------------------------------- */
+
+interface LabelLine {
+  text: string;
+  /** Offset from the anchor, in the label's (rotated) frame. */
+  dx: number;
+  dy: number;
+  align: CanvasTextAlign;
+  baseline: CanvasTextBaseline;
+  weight?: AxisLabelFontWeight;
+  muted?: boolean;
+  /** The tick label itself (not a second line). */
+  main?: boolean;
+}
+
+interface LabelPlacement {
+  tick: AxisTick;
+  index: number;
+  x: number;
+  y: number;
+  /** Rotation in radians (0 for none). */
+  angle: number;
+  lines: LabelLine[];
+}
+
+const ALIGN_TEXT: Record<AxisLabelAlign, CanvasTextAlign> = { start: 'left', center: 'center', end: 'right' };
+
+/** Offsets of stacked lines from a shared baseline mode, in the label's frame. */
+function stack(n: number, baseline: CanvasTextBaseline, fh: number): number[] {
+  return Array.from({ length: n }, (_, i) => (baseline === 'top' ? i * fh : baseline === 'bottom' ? -(n - 1 - i) * fh : (i - (n - 1) / 2) * fh));
+}
+
+function placeLabels(a: AxisLayout, plot: Rect, theme: ChartTheme): LabelPlacement[] {
+  const o = a.options;
+  if (a.position === 'none' || o.hideTickLabels || o.thumbnails?.hideLabel) return [];
+  const fh = theme.fontSize * 1.25;
+  const tick = o.disableTicks ? 0 : (o.tickSize ?? 6);
+  const labelGap = a.box?.label ?? tick + 4;
+  const bw = isOrdinal(a.scaleType) ? a.scale.bandwidth() : 0;
+  const along = (al: AxisLabelAlign) => (al === 'start' ? -bw / 2 : al === 'end' ? bw / 2 : 0);
+  const deg = angleOf(o);
+  const rad = (deg * Math.PI) / 180;
+  const right = isRightAngle(deg);
+  const out: LabelPlacement[] = [];
+  const timeRows = a.ticks.some((t) => t.sub);
+  a.ticks.forEach((t, index) => {
+    if (!t.label) return;
+    const al = t.align ?? o.labelAlign ?? 'center';
+    const weight = t.fontWeight ?? o.labelFontWeight;
+    const subWeight = t.subFontWeight ?? o.labelFontWeight;
+    if (a.direction === 'x') {
+      if (t.pos < plot.x - 1 || t.pos > plot.x + plot.width + 1) return;
+      const bottom = a.position === 'bottom';
+      const dir = bottom ? 1 : -1;
+      const y0 = bottom ? plot.y + plot.height + a.offset : plot.y - a.offset;
+      const ly = y0 + dir * labelGap;
+      if (!deg) {
+        const baseline: CanvasTextBaseline = bottom ? 'top' : 'bottom';
+        const lines: LabelLine[] = [{ text: t.label, dx: along(al), dy: 0, align: ALIGN_TEXT[al], baseline, weight, main: true }];
+        if (t.sub) lines.push({ text: t.sub, dx: along(al), dy: dir * fh, align: ALIGN_TEXT[al], baseline, muted: true });
+        if (t.subLabel) {
+          const sal = t.subAlign ?? o.labelAlign ?? 'center';
+          lines.push({ text: t.subLabel, dx: along(sal), dy: dir * fh * (timeRows ? 2 : 1), align: ALIGN_TEXT[sal], baseline, weight: subWeight });
+        }
+        out.push({ tick: t, index, x: t.pos, y: ly, angle: 0, lines });
+        return;
+      }
+      let align: CanvasTextAlign;
+      let baseline: CanvasTextBaseline;
+      if (right) {
+        align = bottom === deg < 0 ? 'right' : 'left';
+        const start: CanvasTextBaseline = deg < 0 ? 'top' : 'bottom';
+        const end: CanvasTextBaseline = deg < 0 ? 'bottom' : 'top';
+        baseline = al === 'start' ? start : al === 'end' ? end : 'middle';
+      } else {
+        align = bottom === deg < 0 ? 'right' : 'left';
+        baseline = 'middle';
+      }
+      const texts = t.subLabel ? [t.label, t.subLabel] : [t.label];
+      const dys = stack(texts.length, baseline, fh);
+      const lines: LabelLine[] = texts.map((text, i) => ({ text, dx: 0, dy: dys[i], align, baseline, weight: i === 0 ? weight : subWeight, main: i === 0 }));
+      out.push({ tick: t, index, x: t.pos + along(al), y: ly, angle: rad, lines });
+      return;
+    }
+    if (t.pos < plot.y - 1 || t.pos > plot.y + plot.height + 1) return;
+    const left = a.position === 'left';
+    const dir = left ? -1 : 1;
+    const x0 = left ? plot.x - a.offset : plot.x + plot.width + a.offset;
+    const lx = x0 + dir * labelGap;
+    const texts = t.subLabel ? [t.label, t.subLabel] : [t.label];
+    if (!deg) {
+      // Lines stack vertically; the block sits at the band's start, centre or end.
+      const n = texts.length;
+      const top = al === 'start' ? 0 : al === 'end' ? -n * fh : (-n * fh) / 2;
+      const align: CanvasTextAlign = left ? 'right' : 'left';
+      const lines: LabelLine[] = texts.map((text, i) => ({ text, dx: 0, dy: top + (i + 0.5) * fh, align, baseline: 'middle', weight: i === 0 ? weight : subWeight, main: i === 0 }));
+      out.push({ tick: t, index, x: lx, y: t.pos + along(al), angle: 0, lines });
+      return;
+    }
+    let align: CanvasTextAlign;
+    let baseline: CanvasTextBaseline;
+    if (right) {
+      // Text runs along the axis; start / end align it to the band's top / bottom edge.
+      const startAlign: CanvasTextAlign = deg < 0 ? 'right' : 'left';
+      const endAlign: CanvasTextAlign = deg < 0 ? 'left' : 'right';
+      align = al === 'start' ? startAlign : al === 'end' ? endAlign : 'center';
+      baseline = left === deg < 0 ? 'bottom' : 'top';
+    } else {
+      align = left ? 'right' : 'left';
+      baseline = 'middle';
+    }
+    const dys = stack(texts.length, baseline, fh);
+    const lines: LabelLine[] = texts.map((text, i) => ({ text, dx: 0, dy: dys[i], align, baseline, weight: i === 0 ? weight : subWeight, main: i === 0 }));
+    out.push({ tick: t, index, x: lx, y: t.pos + along(al), angle: rad, lines });
+  });
+  return out;
+}
+
+const fontFor = (theme: ChartTheme, weight?: AxisLabelFontWeight) => `${weight !== undefined && weight !== 'normal' ? `${weight} ` : ''}${theme.fontSize}px ${theme.fontFamily}`;
+
+/** Hit box of a visible tick label, in plot-element coordinates. */
+export interface AxisLabelBox {
+  axisId: string;
+  direction: 'x' | 'y';
+  value: DomainValue;
+  /** Index of the tick in `AxisLayout.ticks`. */
+  index: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Text as drawn (possibly truncated). */
+  text: string;
+  /** Untruncated text. */
+  fullText: string;
+  truncated: boolean;
+}
+
+/**
+ * Axis-aligned boxes around every visible tick label (rotated labels get the
+ * box around the rotated text). Use them for label tooltips (show `fullText`
+ * when `truncated`) and label clicks. `measure` should measure text in the
+ * axis font; without it widths are estimated.
+ */
+export function axisLabelBoxes(layout: CartesianLayout, theme: ChartTheme, measure?: (text: string) => number): AxisLabelBox[] {
+  const m: Measure = measure ?? ((t: string) => t.length * theme.fontSize * 0.6);
+  const fh = theme.fontSize * 1.25;
+  const out: AxisLabelBox[] = [];
+  for (const a of [...layout.xAxes, ...layout.yAxes]) {
+    for (const p of placeLabels(a, layout.plot, theme)) {
+      const line = p.lines.find((l) => l.main);
+      if (!line) continue;
+      const w = widthAt(m, line.text, line.weight);
+      const x0 = line.dx + (line.align === 'right' || line.align === 'end' ? -w : line.align === 'center' ? -w / 2 : 0);
+      const y0 = line.dy + (line.baseline === 'bottom' || line.baseline === 'alphabetic' ? -fh : line.baseline === 'middle' ? -fh / 2 : 0);
+      const cos = Math.cos(p.angle);
+      const sin = Math.sin(p.angle);
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      for (const [cx, cy] of [
+        [x0, y0],
+        [x0 + w, y0],
+        [x0, y0 + fh],
+        [x0 + w, y0 + fh],
+      ]) {
+        const X = p.x + cx * cos - cy * sin;
+        const Y = p.y + cx * sin + cy * cos;
+        minX = Math.min(minX, X);
+        maxX = Math.max(maxX, X);
+        minY = Math.min(minY, Y);
+        maxY = Math.max(maxY, Y);
+      }
+      const fullText = p.tick.fullLabel ?? p.tick.label;
+      out.push({ axisId: a.id, direction: a.direction, value: p.tick.value, index: p.index, x: minX, y: minY, width: maxX - minX, height: maxY - minY, text: p.tick.label, fullText, truncated: fullText !== p.tick.label });
+    }
+  }
+  return out;
+}
+
+/** The label box under a point (plot-element coordinates), if any. */
+export function hitAxisLabel(layout: CartesianLayout, theme: ChartTheme, x: number, y: number, measure?: (text: string) => number): AxisLabelBox | null {
+  for (const b of axisLabelBoxes(layout, theme, measure)) if (x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height) return b;
+  return null;
+}
+
+function drawLabels(g: CanvasRenderingContext2D, a: AxisLayout, plot: Rect, theme: ChartTheme): void {
+  const base = fontFor(theme);
+  for (const p of placeLabels(a, plot, theme)) {
+    g.globalAlpha = p.tick.alpha ?? 1;
+    if (p.angle) {
+      g.save();
+      g.translate(p.x, p.y);
+      g.rotate(p.angle);
+    }
+    for (const l of p.lines) {
+      g.font = l.weight !== undefined ? fontFor(theme, l.weight) : base;
+      g.textAlign = l.align;
+      g.textBaseline = l.baseline;
+      g.fillStyle = l.muted ? theme.mutedTextColor : theme.textColor;
+      if (p.angle) g.fillText(l.text, l.dx, l.dy);
+      else g.fillText(l.text, p.x + l.dx, p.y + l.dy);
+    }
+    if (p.angle) g.restore();
+  }
+  g.font = base;
+  g.fillStyle = theme.textColor;
+  g.globalAlpha = 1;
 }
 
 /** Draws axis lines, ticks, labels and titles on the 2D overlay. */
@@ -478,6 +910,7 @@ export function drawAxes(g: CanvasRenderingContext2D, layout: CartesianLayout, t
     if (a.position === 'none') continue;
     const o = a.options;
     const tick = o.disableTicks ? 0 : (o.tickSize ?? 6);
+    const title = axisTitleLines(o.label);
     g.strokeStyle = theme.axisColor;
     g.fillStyle = theme.textColor;
     if (a.direction === 'x') {
@@ -515,35 +948,17 @@ export function drawAxes(g: CanvasRenderingContext2D, layout: CartesianLayout, t
         }
         if (ts && box) drawThumb(g, o.thumbnails!.url(t.value, ti), t.pos - ts / 2, bottom ? y0 + box.thumb : y0 - box.thumb - ts, ts, o.thumbnails!.radius ?? 4);
       });
-      for (const t of a.ticks) {
-        if (t.pos < plot.x - 1 || t.pos > plot.x + plot.width + 1) continue;
-        g.globalAlpha = t.alpha ?? 1;
-        if (o.hideTickLabels || o.thumbnails?.hideLabel || !t.label) continue;
-        const ly = y0 + dir * (box?.label ?? tick + 4);
-        if (o.tickLabelAngle) {
-          g.save();
-          g.translate(t.pos, ly);
-          g.rotate((o.tickLabelAngle * Math.PI) / 180);
-          g.textAlign = o.tickLabelAngle < 0 ? 'right' : 'left';
-          g.textBaseline = 'middle';
-          g.fillText(t.label, 0, 0);
-          g.restore();
-        } else {
-          g.fillText(t.label, t.pos, ly);
-          if (t.sub) {
-            g.fillStyle = theme.mutedTextColor;
-            g.fillText(t.sub, t.pos, ly + dir * fh);
-            g.fillStyle = theme.textColor;
-          }
-        }
-      }
       g.globalAlpha = 1;
+      drawLabels(g, a, plot, theme);
       if (box) drawGroups(g, a, plot, theme, y0, dir);
       if (box && o.annotations?.length) drawAnnotations(g, a, plot, theme);
-      if (o.label) {
+      if (title.length) {
         g.font = `600 ${theme.fontSize}px ${theme.fontFamily}`;
+        g.textAlign = 'center';
         g.textBaseline = bottom ? 'bottom' : 'top';
-        g.fillText(o.label, plot.x + plot.width / 2, bottom ? y0 + a.size : y0 - a.size);
+        const n = title.length;
+        // The last line sits at the outer edge (bottom axes) and the first at the outer edge (top axes).
+        title.forEach((line, i) => g.fillText(line, plot.x + plot.width / 2, bottom ? y0 + a.size - (n - 1 - i) * fh : y0 - a.size + i * fh));
         g.font = `${theme.fontSize}px ${theme.fontFamily}`;
       }
     } else {
@@ -579,19 +994,24 @@ export function drawAxes(g: CanvasRenderingContext2D, layout: CartesianLayout, t
           g.stroke();
         }
         if (ts && box) drawThumb(g, o.thumbnails!.url(t.value, ti), left ? x0 - box.thumb - ts : x0 + box.thumb, t.pos - ts / 2, ts, o.thumbnails!.radius ?? 4);
-        if (!o.hideTickLabels && !o.thumbnails?.hideLabel && t.label) g.fillText(t.label, x0 + dir * (box?.label ?? tick + 4), t.pos);
       });
       g.globalAlpha = 1;
+      drawLabels(g, a, plot, theme);
       if (box) drawGroups(g, a, plot, theme, x0, dir);
       if (box && o.annotations?.length) drawAnnotations(g, a, plot, theme);
-      if (o.label) {
+      if (title.length) {
         g.save();
         g.font = `600 ${theme.fontSize}px ${theme.fontFamily}`;
-        g.translate(left ? x0 - a.size + fh / 2 : x0 + a.size - fh / 2, plot.y + plot.height / 2);
-        g.rotate(left ? -Math.PI / 2 : Math.PI / 2);
         g.textAlign = 'center';
         g.textBaseline = 'middle';
-        g.fillText(o.label, 0, 0);
+        // Rotated titles: the first line is the outermost one.
+        title.forEach((line, i) => {
+          g.save();
+          g.translate(left ? x0 - a.size + fh / 2 + i * fh : x0 + a.size - fh / 2 - i * fh, plot.y + plot.height / 2);
+          g.rotate(left ? -Math.PI / 2 : Math.PI / 2);
+          g.fillText(line, 0, 0);
+          g.restore();
+        });
         g.restore();
       }
     }

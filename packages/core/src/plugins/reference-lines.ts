@@ -13,6 +13,15 @@ import type { ReferenceAreaOptions, ReferenceLineOptions } from '../types';
  * Reference lines (`referenceLines`) and shaded reference areas
  * (`referenceAreas`), drawn behind or in front of the series.
  */
+/** Position on an axis; on band axes `before` / `after` sit between bands instead of on the center. */
+function bandOffset(a: { scale: { map(v: never): number; bandwidth(): number; step(): number } }, v: unknown, pos: ReferenceLineOptions['bandPosition']): number {
+  const band = a.scale.bandwidth();
+  const start = a.scale.map(v as never);
+  if (!band || !pos || pos === 'center') return start + band / 2;
+  const gap = (a.scale.step() - band) / 2;
+  return pos === 'before' ? start - gap : start + band + gap;
+}
+
 export function referenceLinesPlugin(): ChartPlugin {
   let chart: Chart | null = null;
   let lines: LineMark[] = [];
@@ -61,7 +70,7 @@ export function referenceLinesPlugin(): ChartPlugin {
         if (r.y !== undefined) {
           const a = ctx.yAxis(r.axisId);
           if (a) {
-            const y = a.scale.map(r.y) + a.scale.bandwidth() / 2;
+            const y = bandOffset(a, r.y, r.bandPosition);
             pts = [
               { key: 'a', x: p.x, y },
               { key: 'b', x: p.x + p.width, y },
@@ -70,7 +79,7 @@ export function referenceLinesPlugin(): ChartPlugin {
         } else if (r.x !== undefined) {
           const a = ctx.xAxis(r.axisId);
           if (a) {
-            const x = a.scale.map(r.x) + a.scale.bandwidth() / 2;
+            const x = bandOffset(a, r.x, r.bandPosition);
             pts = [
               { key: 'a', x, y: p.y },
               { key: 'b', x, y: p.y + p.height },
@@ -105,23 +114,42 @@ export function referenceLinesPlugin(): ChartPlugin {
       const theme = chart!.chartTheme;
       const p = ctx.plot;
       g.save();
-      g.font = `600 ${theme.fontSize - 1}px ${theme.fontFamily}`;
       for (const r of refs()) {
         if (!r.label) continue;
-        g.fillStyle = r.color ? rgbaToCss(resolveColor(r.color, ctx.scheme)) : theme.textColor;
+        g.font = `${r.labelFontWeight ?? 600} ${theme.fontSize - 1}px ${theme.fontFamily}`;
+        const lc = r.labelColor ?? r.color;
+        g.fillStyle = lc ? rgbaToCss(resolveColor(lc, ctx.scheme)) : theme.textColor;
+        const outside = r.labelPlacement === 'axis';
         if (r.y !== undefined) {
           const a = ctx.yAxis(r.axisId);
           if (!a) continue;
-          const y = a.scale.map(r.y) + a.scale.bandwidth() / 2;
+          const y = bandOffset(a, r.y, r.bandPosition);
+          if (outside) {
+            // Next to the plot edge opposite the axis labels.
+            const right = a.position !== 'right';
+            g.textBaseline = 'middle';
+            g.textAlign = right ? 'left' : 'right';
+            g.fillText(r.label, right ? p.x + p.width + 4 : p.x - 4, y);
+            continue;
+          }
           g.textBaseline = 'bottom';
           g.textAlign = r.labelAlign === 'start' ? 'left' : r.labelAlign === 'middle' ? 'center' : 'right';
           g.fillText(r.label, r.labelAlign === 'start' ? p.x + 4 : r.labelAlign === 'middle' ? p.x + p.width / 2 : p.x + p.width - 4, y - 3);
         } else if (r.x !== undefined) {
           const a = ctx.xAxis(r.axisId);
           if (!a) continue;
-          g.textBaseline = 'top';
+          const x = bandOffset(a, r.x, r.bandPosition);
+          if (outside) {
+            // Above the plot, centered on the line.
+            g.textBaseline = 'bottom';
+            g.textAlign = 'center';
+            g.fillText(r.label, x, p.y - 3);
+            continue;
+          }
+          const align = r.labelAlign ?? 'start';
+          g.textBaseline = align === 'end' ? 'bottom' : align === 'middle' ? 'middle' : 'top';
           g.textAlign = 'left';
-          g.fillText(r.label, a.scale.map(r.x) + a.scale.bandwidth() / 2 + 4, p.y + 2);
+          g.fillText(r.label, x + 4, align === 'end' ? p.y + p.height - 2 : align === 'middle' ? p.y + p.height / 2 : p.y + 2);
         }
       }
       for (const a of areas()) {
@@ -144,6 +172,16 @@ export function referenceLinesPlugin(): ChartPlugin {
     setDevice(d) {
       device = null;
       ensure(d);
+    },
+    reserveTop(c) {
+      // Room above the plot for vertical lines whose label sits outside it.
+      return (c.getOptions().referenceLines ?? []).some((r) => r.x !== undefined && r.label && r.labelPlacement === 'axis') ? c.chartTheme.fontSize + 6 : 0;
+    },
+    reserveRight(c) {
+      // Room beside the plot for horizontal lines whose label sits outside it.
+      const fs = c.chartTheme.fontSize - 1;
+      const labels = (c.getOptions().referenceLines ?? []).filter((r) => r.y !== undefined && r.label && r.labelPlacement === 'axis').map((r) => r.label!.length * fs * 0.58);
+      return labels.length ? Math.max(...labels) + 8 : 0;
     },
     destroy() {
       lines.forEach((l) => l.destroy());

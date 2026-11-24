@@ -67,7 +67,7 @@ export {
 } from '@rsc-gl/core';
 
 // Composable children API.
-export { Chart, type ChartProps } from './children/Chart';
+export { Chart, type ChartProps, type HighlightedItem } from './children/Chart';
 export {
   Bar,
   Line,
@@ -96,6 +96,20 @@ export {
   ScatterPath,
   ChartToolbar,
   ChartActionBar,
+  ChartInspect,
+  TrendlineAnnotation,
+  Annotation,
+  BarDirectLabel,
+  LineDirectLabel,
+  LineForecast,
+  EmptyState,
+  type TrendlineAnnotationProps,
+  type AnnotationProps,
+  type BarDirectLabelProps,
+  type LineDirectLabelProps,
+  type LineForecastProps,
+  type AxisLabel,
+  type AxisSubLabel,
   type AxisAnnotationProps,
   type AxisThumbnailProps,
   type AxisGroupProps,
@@ -127,7 +141,17 @@ export {
 } from './children/components';
 
 // Convenience re-exports so React users rarely need to import the core package directly.
-export { PALETTES, CATEGORICAL_16, getFormatter, LINE_TYPES, setReducedMotionPolicy, systemPrefersReducedMotion } from '@rsc-gl/core';
+export {
+  PALETTES,
+  CATEGORICAL_16,
+  getFormatter,
+  LINE_TYPES,
+  setReducedMotionPolicy,
+  systemPrefersReducedMotion,
+  getColorValue,
+  colorSchemes,
+  getColorSchemeColors,
+} from '@rsc-gl/core';
 export type {
   ChartOptions,
   SeriesOptions,

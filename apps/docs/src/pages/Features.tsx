@@ -366,19 +366,39 @@ export function ChildrenApiPage() {
       <H2>Components</H2>
       <PropsTable
         rows={[
-          { name: '<Chart>', type: 'data, width, height, colors, colorScheme, hiddenSeries, highlightedSeries, loading, emptyStateText, animations, locale…', description: 'Root. Owns the GPU surface.' },
-          { name: '<Bar>', type: 'dimension, metric, color, type (stacked | dodged), orientation, paddingRatio, hasSquareCorners, colorOverride, onClick', description: 'Bars; children may include tooltip and popover.' },
-          { name: '<Line>', type: 'dimension, metric, color, lineType, lineWidth, scaleType, interpolate, staticPoint, gradient, alternateSegmentKey', description: 'Lines, faceted by color and lineType.' },
-          { name: '<Area>', type: 'dimension, metric, metricStart, metricEnd, color, opacity', description: 'Stacked areas or floating bands.' },
-          { name: '<Scatter>', type: 'dimension, metric, color, colorScaleType, size, symbolShape', description: 'Scatter and bubbles.' },
-          { name: '<Donut>', type: 'metric, color, holeRatio, startAngle, isBoolean, sortOrder, variant', description: 'With <DonutSummary> and <SegmentLabel>.' },
+          {
+            name: '<Chart>',
+            type: 'data, width, height (300), padding, colors, colorScheme, backgroundColor, locale, idKey, hiddenSeries, highlightedSeries, highlightedItem, loading, emptyStateText, animations, onReady…',
+            description: 'Root. Owns the GPU surface.',
+          },
+          {
+            name: '<Bar>',
+            type: 'dimension, metric, color, type (stacked | dodged), orientation, paddingRatio, paddingOuter, groupedPadding, order, lineWidth, hasSquareCorners, colorOverride, dimensionDataType, metricAxis, dualMetricAxis, onClick, onMouseOver, onMouseOut',
+            description: 'Bars. Children: <ChartTooltip>, <ChartPopover>, <Annotation>, <BarDirectLabel>, <Trendline>.',
+          },
+          {
+            name: '<Line>',
+            type: 'dimension, metric, color, lineType, lineWidth, scaleType, interpolate, staticPoint (boolean or key), pointSize, isSparkline, isMethodLast, gradient, alternateSegmentKey, metricAxis, dualMetricAxis',
+            description: 'Lines, faceted by color and lineType. Children: <MetricRange>, <Trendline>, <LinePointAnnotation>, <LineDirectLabel>, <LineForecast>.',
+          },
+          { name: '<Area>', type: 'name, dimension, metric, metricStart, metricEnd, color, opacity', description: 'Stacked areas or floating bands.' },
+          { name: '<Scatter>', type: 'name, dimension, metric, color, colorScaleType, size, symbolShape, opacity, lineWidth, stroke', description: 'Scatter and bubbles. Children: <ScatterAnnotation>, <ScatterPath>, <Trendline>.' },
+          { name: '<Donut>', type: 'metric, color, holeRatio, startAngle, isBoolean, sortOrder, variant', description: 'With <DonutSummary> and <SegmentLabel> (labelKey, percent, value, percentFormat).' },
           { name: '<Combo>', type: 'dimension', description: 'Groups <Bar> and <Line> sharing a dimension.' },
-          { name: '<Axis>', type: 'position, title, grid, ticks, baseline, labelFormat, granularity, numberFormat, labelOrientation, range, zoom', description: 'Children: <ReferenceLine>.' },
-          { name: '<Legend>', type: 'position, title, isToggleable, highlight, legendLabels, descriptions, hiddenEntries, onClick', description: 'HTML legend.' },
-          { name: '<ChartTooltip>', type: '(datum) => ReactNode; highlightBy', description: 'React tooltip content.' },
-          { name: '<ChartPopover>', type: '(datum, close) => ReactNode; width; rightClick; onOpenChange', description: 'Click or right-click popovers.' },
-          { name: '<Title>', type: 'text, position', description: 'Chart title.' },
-          { name: '<BigNumber>', type: 'dataKey, label, method, numberFormat, orientation, icon', description: 'KPI with optional sparkline (<Line> child).' },
+          {
+            name: '<Axis>',
+            type: 'position, title (string or lines), grid, ticks, baseline, labelFormat, granularity, numberFormat, currencyCode, labels, subLabels, labelAlign, labelFontWeight, truncateLabels, tickCountLimit, tickCountMinimum, tickMinStep, hasTooltip, onClick, range, zoom',
+            description: 'Children: <ReferenceLine>, <AxisAnnotation>, <AxisThumbnail>, <AxisGroup>.',
+          },
+          {
+            name: '<Legend>',
+            type: 'position, title, isToggleable, highlight, legendLabels, descriptions, hiddenEntries, defaultHiddenSeries, labelLimit, onClick, onMouseOver, onMouseOut',
+            description: 'HTML legend.',
+          },
+          { name: '<ChartTooltip>', type: '(datum) => ReactNode; highlightBy; excludeDataKeys', description: 'React tooltip content for its mark (alias: <ChartInspect>).' },
+          { name: '<ChartPopover>', type: '(datum, close) => ReactNode; width; min/max width and height; containerPadding; rightClick; onOpenChange', description: 'Click or right-click popovers, anchored on the mark.' },
+          { name: '<Title>', type: 'text, position, fontWeight', description: 'Chart title.' },
+          { name: '<BigNumber>', type: 'dataKey, label, method, numberFormat, numberType, orientation, icon', description: 'KPI with optional sparkline (<Line> child).' },
         ]}
       />
     </Page>

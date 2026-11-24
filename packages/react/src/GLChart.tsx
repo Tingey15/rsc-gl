@@ -22,7 +22,7 @@ export function lazyPluginNames(o: ChartOptions): string[] {
   // Marquee first so it receives drags before zoom panning.
   if (o.marquee && (typeof o.marquee !== 'object' || o.marquee.enabled !== false)) names.push('marquee');
   if ((o.xAxis ?? []).some((a) => a.zoom)) names.push('zoom');
-  if (o.trendlines?.length || o.pointAnnotations?.length || o.scatterPaths?.length || o.scatterLabels?.length) names.push('annotations');
+  if (o.trendlines?.length || o.pointAnnotations?.length || o.scatterPaths?.length || o.scatterLabels?.length || o.directLabels) names.push('annotations');
   if (o.toolbar) names.push('toolbar');
   return names;
 }
@@ -37,7 +37,7 @@ export function autoPlugins(o: ChartOptions): ChartPlugin[] {
   const list: ChartPlugin[] = [referenceLinesPlugin()];
   const zoomAxes = (o.xAxis ?? []).filter((a) => a.zoom);
   if (zoomAxes.length) list.push(zoomPlugin({ slider: zoomAxes.some((a) => typeof a.zoom === 'object' && a.zoom.slider) }));
-  if (o.trendlines?.length || o.pointAnnotations?.length || o.scatterPaths?.length || o.scatterLabels?.length) list.push(annotationsPlugin());
+  if (o.trendlines?.length || o.pointAnnotations?.length || o.scatterPaths?.length || o.scatterLabels?.length || o.directLabels) list.push(annotationsPlugin());
   if (o.toolbar) list.push(toolbarPlugin(typeof o.toolbar === 'object' ? o.toolbar : {}));
   if (o.marquee && (typeof o.marquee !== 'object' || o.marquee.enabled !== false)) list.unshift(marqueePlugin(typeof o.marquee === 'object' ? o.marquee : {}));
   return list;

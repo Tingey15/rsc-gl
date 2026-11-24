@@ -69,7 +69,7 @@ export function normalizeGroups(o: BaseSeriesOptions, ctx: NormalizeContext, def
   if (groupFields.length === 0) {
     const points = rows.map((row, i) => {
       const x = toDomainValue(row[dim]);
-      return { key: `${baseId}::${String(x)}::${keyOf(row)}`, index: i, x, y: toNumber(row[metric]), datum: row } as SeriesPoint;
+      return { key: `${baseId}::${String(x)}::${keyOf(row, ctx.idKey)}`, index: i, x, y: toNumber(row[metric]), datum: row } as SeriesPoint;
     });
     dedupeKeys(points);
     return [{ id: baseId, label: o.label ?? metric, points }];
@@ -89,8 +89,8 @@ export function normalizeGroups(o: BaseSeriesOptions, ctx: NormalizeContext, def
   return [...groups.values()];
 }
 
-function keyOf(row: Datum): string {
-  const id = row.id ?? row.key;
+function keyOf(row: Datum, idKey?: string): string {
+  const id = idKey ? row[idKey] : (row.id ?? row.key);
   return id !== undefined ? String(id) : '';
 }
 

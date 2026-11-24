@@ -34,7 +34,18 @@ export { InstanceMark, packColor, type MarkItem, type FrameState } from './marks
 export { COMMON_UNIFORMS, GLSL_LIB, WGSL_LIB } from './marks/shader-lib';
 
 export { createScale, isOrdinal, isTimeScale, type ChartScale, type ScaleType, type DomainValue } from './scales/scales';
-export { getFormatter, inferGranularity, type Formatter, type NumberFormat, type TimeGranularity, type ValueFormatter } from './format/format';
+export {
+  getFormatter,
+  inferGranularity,
+  currencyFor,
+  type Formatter,
+  type NumberFormat,
+  type TimeGranularity,
+  type ValueFormatter,
+  type LocaleInput,
+  type LocaleOptions,
+  type NumberFormatOptions,
+} from './format/format';
 export {
   ease,
   EASING_ID,
@@ -46,7 +57,20 @@ export {
   type EasingName,
   type TransitionOptions,
 } from './animation/easing';
-export { resolveColor, resolvePalette, rgbaToCss, parseCss, PALETTES, CATEGORICAL_16, getInterpolator, contrastText } from './theme/colors';
+export {
+  resolveColor,
+  resolvePalette,
+  rgbaToCss,
+  parseCss,
+  PALETTES,
+  CATEGORICAL_16,
+  getInterpolator,
+  contrastText,
+  getColorValue,
+  colorSchemes,
+  getColorSchemeColors,
+  type ColorSchemeName,
+} from './theme/colors';
 export { getTheme, LIGHT_THEME, DARK_THEME, LINE_TYPES, LINE_WIDTHS, SYMBOL_SIZES, resolveLineType, resolveLineWidth, resolveSymbolSize, type ChartTheme, type LineType, type LineWidth, type SymbolSize } from './theme/theme';
 export { facetBy, sharedExtent, niceExtent, type Facet } from './data/facet';
 export { exportRows, serializeRows, type DataExportFormat, type TextExportFormat } from './data/export';
@@ -55,6 +79,7 @@ export { axisAnnotationBoxes, groupRuns, type AxisAnnotationBox } from './compon
 export { loadImage, onImageLoad } from './components/images';
 export type { ChartEvent } from './chart/chart';
 export type { AxisLayout, AxisBox, CartesianLayout, AxisTick } from './components/axes';
+export { axisLabelBoxes, hitAxisLabel, axisTitleLines, axisTitleText, type AxisLabelBox, type AxisLabelAlign, type AxisLabelFontWeight } from './components/axes';
 export { radialLineSeries, type RadialLineSeriesOptions } from './series/radial-line';
 export { startChartWorker, type ChartWorkerConfig, type WorkerChartApi } from './worker/runtime';
 export { WorkerChart, type WorkerChartOptions } from './worker/host';

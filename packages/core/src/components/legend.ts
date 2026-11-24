@@ -49,7 +49,19 @@ export class LegendView {
   update(entries: LegendEntry[], options: LegendOptions, hidden: Set<string>): boolean {
     this.hidden = hidden;
     const visible = entries.filter((e) => !options.hiddenEntries?.includes(e.id));
-    const sig = JSON.stringify([visible.map((e) => [e.id, e.label, e.color, e.shape, e.dash]), options.labels, options.title, options.toggleable, options.highlight, options.position, options.align, options.descriptions]);
+    const sig = JSON.stringify([
+      visible.map((e) => [e.id, e.label, e.color, e.shape, e.dash]),
+      options.labels,
+      options.title,
+      options.toggleable,
+      options.clickable,
+      options.highlight,
+      options.position,
+      options.align,
+      options.descriptions,
+      options.labelLimit,
+      options.titleLimit,
+    ]);
     if (sig === this.signature) {
       // Same entries: update state in place so keyboard focus survives toggles.
       // Only touch nodes whose state changed (no style invalidation on plain data updates).
@@ -67,28 +79,37 @@ export class LegendView {
     this.el.toggleAttribute('data-vertical', vertical);
     this.el.style.justifyContent = vertical ? '' : options.align === 'end' ? 'flex-end' : options.align === 'start' ? 'flex-start' : 'center';
     const toggleable = options.toggleable !== false;
-    const tag = toggleable ? 'button' : 'div';
+    // Entries are real buttons whenever a click does something (toggle or callback).
+    const clickable = toggleable || !!options.clickable;
+    const tag = clickable ? 'button' : 'div';
+    // A list of buttons is a group (role="listitem" would hide the button role and its pressed state).
+    this.el.setAttribute('role', clickable ? 'group' : 'list');
+    this.el.setAttribute('aria-label', options.title ?? 'Legend');
     const html: string[] = [];
-    if (options.title) html.push(`<div class="rgl-legend-title">${escape(options.title)}</div>`);
+    const limit = (px: number | undefined) => (px ? ` style="max-width:${px}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom"` : '');
+    if (options.title) html.push(`<div class="rgl-legend-title" title="${escape(options.title)}"${limit(options.titleLimit)}>${escape(options.title)}</div>`);
     this.entries.forEach((e, i) => {
       const label = options.labels?.[e.id] ?? e.label;
       const desc = options.descriptions?.[e.id];
       const isHidden = hidden.has(e.id);
+      // Full text on hover when the label may be cut off, otherwise the description.
+      const tip = desc ?? (options.labelLimit ? label : undefined);
+      const attrs = clickable ? `type="button" ${toggleable ? `data-toggleable aria-pressed="${!isHidden}"` : ''}` : 'role="listitem"';
       html.push(
-        `<${tag} class="rgl-legend-item" role="listitem" data-i="${i}" ${toggleable ? `data-toggleable type="button" aria-pressed="${!isHidden}"` : ''} ${isHidden ? 'data-hidden' : ''} ${desc ? `title="${escape(desc)}"` : ''}>${swatch(e)}<span class="rgl-legend-label">${escape(label)}</span></${tag}>`,
+        `<${tag} class="rgl-legend-item" data-i="${i}" ${attrs} ${isHidden ? 'data-hidden' : ''} ${tip ? `title="${escape(tip)}"` : ''}>${swatch(e)}<span class="rgl-legend-label"${limit(options.labelLimit)}>${escape(label)}</span></${tag}>`,
       );
     });
     this.el.innerHTML = html.join('');
     this.el.querySelectorAll<HTMLElement>('.rgl-legend-item').forEach((node) => {
       const entry = this.entries[Number(node.dataset.i)];
-      if (toggleable) node.addEventListener('click', () => this.callbacks.onToggle(entry));
+      if (clickable) node.addEventListener('click', () => this.callbacks.onToggle(entry));
       if (options.highlight !== false) {
         node.addEventListener('pointerenter', () => !this.hidden.has(entry.id) && this.callbacks.onHover(entry));
         node.addEventListener('focus', () => !this.hidden.has(entry.id) && this.callbacks.onHover(entry));
         node.addEventListener('blur', () => this.callbacks.onHover(null));
       }
     });
-      return true;
+    return true;
   }
 
   /** Dims entries that are not the highlighted series. */
