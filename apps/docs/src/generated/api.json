@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-23T21:51:44.143Z",
+ "generatedAt": "2026-11-24T21:41:54.328Z",
  "interfaces": [
   {
    "name": "HighlightScopeOptions",
@@ -188,6 +188,24 @@
      "doc": "Rows / items excluded from interaction (tooltip, highlight)."
     },
     {
+     "name": "excludeDataKeys",
+     "optional": true,
+     "type": "string[]",
+     "doc": "Rows where any of these fields is truthy get no tooltip and no hover highlight."
+    },
+    {
+     "name": "disableTooltip",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Hovering this series shows no tooltip (other series still do)."
+    },
+    {
+     "name": "cursor",
+     "optional": true,
+     "type": "string",
+     "doc": "CSS cursor while an item of this series is under the pointer (e.g. 'pointer' for clickable marks)."
+    },
+    {
      "name": "animation",
      "optional": true,
      "type": "boolean | Partial<TransitionOptions>",
@@ -259,14 +277,32 @@
     {
      "name": "barLabel",
      "optional": true,
-     "type": "'value' | ((item: { value: number | null; dataIndex: number; seriesId: string }) => string | null)",
+     "type": "'value' | ((item: { value: number | null; dataIndex: number; seriesId: string; datum?: Datum }) => string | null)",
      "doc": ""
     },
     {
      "name": "barLabelPlacement",
      "optional": true,
-     "type": "'center' | 'inside-end' | 'outside'",
-     "doc": ""
+     "type": "'start' | 'center' | 'inside-end' | 'outside'",
+     "doc": "'start' sits inside the bar near its base; 'outside' past its end."
+    },
+    {
+     "name": "barLabelBadge",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Draws labels on a filled badge (bar annotations)."
+    },
+    {
+     "name": "barLabelOverflow",
+     "optional": true,
+     "type": "'hide' | 'spill'",
+     "doc": "Labels that do not fit: hide them (default) or let them spill past the bar."
+    },
+    {
+     "name": "barLabelFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": "Number format for `barLabel: 'value'`."
     }
    ]
   },
@@ -328,7 +364,7 @@
     {
      "name": "showMark",
      "optional": true,
-     "type": "boolean | 'start' | 'end' | ((p: { index: number; value: number | null }) => boolean)",
+     "type": "boolean | 'start' | 'end' | ((p: { index: number; value: number | null; datum?: Datum }) => boolean)",
      "doc": ""
     },
     {
@@ -434,6 +470,24 @@
      "optional": true,
      "type": "boolean",
      "doc": "Only show the range while its series is highlighted."
+    },
+    {
+     "name": "scaleAxisToFit",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Widen the value axis so the whole range is visible. Default true."
+    },
+    {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "number",
+     "doc": "Width of the range boundary lines in px. Default 1."
+    },
+    {
+     "name": "lineOpacity",
+     "optional": true,
+     "type": "number",
+     "doc": "Opacity of the range boundary lines. Default 1."
     }
    ]
   },
@@ -737,6 +791,30 @@
      "doc": ""
     },
     {
+     "name": "arcLabelSecondary",
+     "optional": true,
+     "type": "'value' | 'formattedValue' | 'percent'",
+     "doc": "A second line under the arc label (e.g. the value or percent under the category)."
+    },
+    {
+     "name": "arcLabelField",
+     "optional": true,
+     "type": "string",
+     "doc": "Datum field used for `arcLabel: 'label'`."
+    },
+    {
+     "name": "arcLabelPosition",
+     "optional": true,
+     "type": "'inside' | 'outside'",
+     "doc": "Labels inside the ring (default) or outside it."
+    },
+    {
+     "name": "percentFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": "Number format for percent labels. Default '.0%'."
+    },
+    {
      "name": "centerLabel",
      "optional": true,
      "type": "string | ((total: number) => string)",
@@ -795,8 +873,8 @@
     {
      "name": "label",
      "optional": true,
-     "type": "string",
-     "doc": ""
+     "type": "string | string[]",
+     "doc": "Axis title. An array draws one line per entry."
     },
     {
      "name": "min",
@@ -826,13 +904,67 @@
      "name": "tickNumber",
      "optional": true,
      "type": "number",
-     "doc": ""
+     "doc": "Target tick count (continuous axes)."
+    },
+    {
+     "name": "maxTicks",
+     "optional": true,
+     "type": "number",
+     "doc": "Upper limit on the tick count (continuous axes). As in the legacy library the first (base) tick is not counted: `0, 1, 2, 3` is three ticks."
+    },
+    {
+     "name": "minTicks",
+     "optional": true,
+     "type": "number",
+     "doc": "Lower limit on the tick count (continuous axes), counted like `maxTicks`."
+    },
+    {
+     "name": "tickMinStep",
+     "optional": true,
+     "type": "number",
+     "doc": "Minimum step between ticks in domain units (numeric, non-log axes)."
     },
     {
      "name": "tickValues",
      "optional": true,
      "type": "ReadonlyArray<DomainValue>",
      "doc": "Explicit tick values."
+    },
+    {
+     "name": "labels",
+     "optional": true,
+     "type": "ReadonlyArray< DomainValue | { value: DomainValue; label?: string; align?: 'start' | 'center' | 'end'; fontWeight?: 'normal' | 'bold' | number } >",
+     "doc": "Explicit ticks: only these are drawn. An object can set the label text, its alignment and its font weight. Overrides `tickValues`."
+    },
+    {
+     "name": "subLabels",
+     "optional": true,
+     "type": "ReadonlyArray<{ value: DomainValue; subLabel: string; align?: 'start' | 'center' | 'end'; fontWeight?: 'normal' | 'bold' | number }>",
+     "doc": "A second label line under the tick labels with matching values."
+    },
+    {
+     "name": "labelAlign",
+     "optional": true,
+     "type": "'start' | 'center' | 'end'",
+     "doc": "Alignment of every tick label within its band (or around its tick). Default 'center'."
+    },
+    {
+     "name": "labelFontWeight",
+     "optional": true,
+     "type": "'normal' | 'bold' | number",
+     "doc": "Font weight of every tick label. Default 'normal'."
+    },
+    {
+     "name": "currencyCode",
+     "optional": true,
+     "type": "string",
+     "doc": "ISO 4217 code used by the `currency` / `shortCurrency` number formats (e.g. 'EUR')."
+    },
+    {
+     "name": "currencyLocale",
+     "optional": true,
+     "type": "string",
+     "doc": "BCP 47 locale for the currency symbol's placement (e.g. 'de-DE')."
     },
     {
      "name": "tickSize",
@@ -844,7 +976,7 @@
      "name": "tickLabelAngle",
      "optional": true,
      "type": "number",
-     "doc": ""
+     "doc": "Tick label rotation in degrees (x and y axes); -90 draws vertical labels."
     },
     {
      "name": "disableLine",
@@ -898,13 +1030,19 @@
      "name": "granularity",
      "optional": true,
      "type": "TimeGranularity",
-     "doc": ""
+     "doc": "Time axes: the label format and the tick interval (one tick per day, week, month, ...)."
     },
     {
      "name": "categoryGapRatio",
      "optional": true,
      "type": "number",
      "doc": ""
+    },
+    {
+     "name": "categoryOuterGapRatio",
+     "optional": true,
+     "type": "number",
+     "doc": "Band axes: outer padding as a fraction of the step. Default half of `categoryGapRatio`."
     },
     {
      "name": "barGapRatio",
@@ -915,8 +1053,8 @@
     {
      "name": "labelLimit",
      "optional": true,
-     "type": "number",
-     "doc": "Max label width in px before truncation (ordinal axes)."
+     "type": "number | 'band'",
+     "doc": "Max label width in px before truncation with an ellipsis (ordinal axes). `'band'` truncates to the band step."
     },
     {
      "name": "zoom",
@@ -1083,6 +1221,18 @@
      "doc": ""
     },
     {
+     "name": "markIndex",
+     "optional": true,
+     "type": "number",
+     "doc": "Restricts the `seriesId` lookup to series of this entry of `ChartOptions.series`."
+    },
+    {
+     "name": "matchLineColor",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Badge in the series color (default) or plain text in the theme text color."
+    },
+    {
      "name": "label",
      "optional": false,
      "type": "string",
@@ -1139,10 +1289,16 @@
      "doc": ""
     },
     {
+     "name": "markIndex",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
      "name": "groupBy",
      "optional": true,
-     "type": "string",
-     "doc": "Datum field that splits points into separate paths."
+     "type": "string | string[]",
+     "doc": "Datum field(s) that split points into separate paths."
     },
     {
      "name": "order",
@@ -1189,6 +1345,12 @@
      "doc": ""
     },
     {
+     "name": "markIndex",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
      "name": "field",
      "optional": true,
      "type": "string",
@@ -1197,8 +1359,8 @@
     {
      "name": "position",
      "optional": true,
-     "type": "'right' | 'left' | 'top' | 'bottom'",
-     "doc": ""
+     "type": "'right' | 'left' | 'top' | 'bottom' | ('right' | 'left' | 'top' | 'bottom')[]",
+     "doc": "Side of the point; a list is tried in order until a label fits."
     },
     {
      "name": "indices",
@@ -1243,6 +1405,24 @@
      "optional": true,
      "type": "boolean",
      "doc": "Click toggles series visibility."
+    },
+    {
+     "name": "clickable",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Entries are buttons that report clicks (`onLegendClick`) even when not toggleable."
+    },
+    {
+     "name": "labelLimit",
+     "optional": true,
+     "type": "number",
+     "doc": "Max label width in px (ellipsis beyond; the full text stays in the title attribute)."
+    },
+    {
+     "name": "titleLimit",
+     "optional": true,
+     "type": "number",
+     "doc": "Max title width in px."
     },
     {
      "name": "highlight",
@@ -1327,6 +1507,12 @@
      "doc": ""
     },
     {
+     "name": "markIndex",
+     "optional": true,
+     "type": "number",
+     "doc": "Index of the series options (`ChartOptions.series`) that produced this item."
+    },
+    {
      "name": "seriesLabel",
      "optional": false,
      "type": "string",
@@ -1405,6 +1591,12 @@
      "optional": true,
      "type": "(ctx: TooltipContext) => string | HTMLElement | null",
      "doc": "Plain DOM rendering hook."
+    },
+    {
+     "name": "filter",
+     "optional": true,
+     "type": "(ctx: TooltipContext) => boolean",
+     "doc": "Return false to show no tooltip for this context (also applies with `customContent`)."
     },
     {
      "name": "sort",
@@ -1493,6 +1685,36 @@
      "optional": true,
      "type": "string",
      "doc": "Series the trendline is computed from (default: every visible cartesian series)."
+    },
+    {
+     "name": "markIndex",
+     "optional": true,
+     "type": "number",
+     "doc": "Only series produced by this entry of `ChartOptions.series`."
+    },
+    {
+     "name": "displayOnHover",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Only drawn while its series is highlighted."
+    },
+    {
+     "name": "excludeDataKeys",
+     "optional": true,
+     "type": "string[]",
+     "doc": "Rows where any of these fields is truthy are left out of the fit."
+    },
+    {
+     "name": "hidePartialWindows",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Moving averages: skip the first points that have no full window (default true)."
+    },
+    {
+     "name": "labelBadge",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Draws the label on a filled badge."
     },
     {
      "name": "method",
@@ -1601,6 +1823,30 @@
      "doc": ""
     },
     {
+     "name": "labelPlacement",
+     "optional": true,
+     "type": "'plot' | 'axis'",
+     "doc": "'axis' draws the label outside the plot, next to the axis."
+    },
+    {
+     "name": "labelColor",
+     "optional": true,
+     "type": "ColorInput",
+     "doc": ""
+    },
+    {
+     "name": "labelFontWeight",
+     "optional": true,
+     "type": "'normal' | 'bold' | number",
+     "doc": ""
+    },
+    {
+     "name": "bandPosition",
+     "optional": true,
+     "type": "'before' | 'center' | 'after'",
+     "doc": "On band axes: at the start, center (default) or end of the band."
+    },
+    {
      "name": "color",
      "optional": true,
      "type": "ColorInput",
@@ -1648,6 +1894,12 @@
      "name": "align",
      "optional": true,
      "type": "'start' | 'middle' | 'end'",
+     "doc": ""
+    },
+    {
+     "name": "fontWeight",
+     "optional": true,
+     "type": "'normal' | 'bold' | number",
      "doc": ""
     }
    ]
@@ -1838,7 +2090,7 @@
     {
      "name": "locale",
      "optional": true,
-     "type": "string | LocaleOptions",
+     "type": "LocaleInput",
      "doc": ""
     },
     {
@@ -1864,6 +2116,24 @@
      "optional": true,
      "type": "ItemIdentifier | null",
      "doc": "Controlled highlight. `null` clears; `undefined` leaves it uncontrolled."
+    },
+    {
+     "name": "highlightedId",
+     "optional": true,
+     "type": "string | number | null",
+     "doc": "Controlled highlight by row id (the `idKey` field); used when `highlightedItem` is unset."
+    },
+    {
+     "name": "idKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Row field that identifies a datum (item keys, `highlightedId`). Default `id`, then `key`."
+    },
+    {
+     "name": "directLabels",
+     "optional": true,
+     "type": "boolean | import('./plugins/annotations').DirectLabelOptions",
+     "doc": "Labels next to the end (or start) of each line / area series (requires the annotations plugin)."
     },
     {
      "name": "highlightScope",
@@ -1904,14 +2174,38 @@
     {
      "name": "onItemClick",
      "optional": true,
-     "type": "(item: ItemIdentifier & { datum?: Datum; value?: number | null }, event: PointerEvent) => void",
+     "type": "(item: ItemIdentifier & { datum?: Datum; value?: number | null; markIndex?: number }, event: PointerEvent) => void",
      "doc": ""
     },
     {
      "name": "onItemContextMenu",
      "optional": true,
-     "type": "(item: ItemIdentifier & { datum?: Datum }, event: MouseEvent) => void",
+     "type": "(item: ItemIdentifier & { datum?: Datum; markIndex?: number }, event: MouseEvent) => void",
      "doc": ""
+    },
+    {
+     "name": "onItemHover",
+     "optional": true,
+     "type": "(item: (ItemIdentifier & { datum?: Datum; markIndex?: number }) | null) => void",
+     "doc": "Pointer enters (item) or leaves (null) a mark."
+    },
+    {
+     "name": "onLegendHover",
+     "optional": true,
+     "type": "(seriesId: string | null) => void",
+     "doc": "Pointer enters (id) or leaves (null) a legend entry."
+    },
+    {
+     "name": "onAxisLabelClick",
+     "optional": true,
+     "type": "(axisId: string, value: string | number, index: number) => void",
+     "doc": "A tick label was clicked."
+    },
+    {
+     "name": "axisLabelTooltips",
+     "optional": true,
+     "type": "boolean | string[]",
+     "doc": "Axis ids (or all axes) whose labels show their full text on hover."
     },
     {
      "name": "onAxisClick",
@@ -2507,10 +2801,28 @@
      "doc": ""
     },
     {
+     "name": "data",
+     "optional": true,
+     "type": "Datum[]",
+     "doc": "Rows (with `setsField` / `metric` / `labelField`) instead of `sets`."
+    },
+    {
+     "name": "setsField",
+     "optional": true,
+     "type": "string",
+     "doc": "Row field holding the sets array. Default 'sets'."
+    },
+    {
+     "name": "labelField",
+     "optional": true,
+     "type": "string",
+     "doc": "Row field holding each region's label. Default 'label'."
+    },
+    {
      "name": "orientation",
      "optional": true,
-     "type": "number",
-     "doc": ""
+     "type": "number | '0deg' | '90deg' | '180deg' | '270deg'",
+     "doc": "Degrees clockwise of the second circle from the first, or the legacy '0deg' … '270deg'."
     }
    ]
   },
@@ -2554,13 +2866,73 @@
     {
      "name": "thresholds",
      "optional": true,
-     "type": "{ value: number; color: ColorInput }[]",
-     "doc": ""
+     "type": "({ value: number; color: ColorInput } | { thresholdMin?: number; thresholdMax?: number; fill?: ColorInput })[]",
+     "doc": "`{ value, color }` (upper bound) or the legacy `{ thresholdMin?, thresholdMax?, fill }`."
     },
     {
      "name": "numberFormat",
      "optional": true,
      "type": "NumberFormat",
+     "doc": ""
+    },
+    {
+     "name": "scaleType",
+     "optional": true,
+     "type": "'normal' | 'fixed' | 'flexible'",
+     "doc": "Shared scale: 'normal' fits the data, 'fixed' uses `maxScaleValue`, 'flexible' grows past it. Unset: each row on its own."
+    },
+    {
+     "name": "maxScaleValue",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "showTarget",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "showTargetValue",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "thresholdBarColor",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Colors the bar with the threshold band its value falls in."
+    },
+    {
+     "name": "direction",
+     "optional": true,
+     "type": "'column' | 'row'",
+     "doc": ""
+    },
+    {
+     "name": "labelPosition",
+     "optional": true,
+     "type": "'top' | 'side'",
+     "doc": ""
+    },
+    {
+     "name": "track",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "metricLabel",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "targetLabel",
+     "optional": true,
+     "type": "string",
      "doc": ""
     }
    ]
@@ -3131,14 +3503,44 @@
     {
      "name": "value",
      "optional": true,
-     "type": "'last' | 'average' | 'none'",
-     "doc": "Which value to show next to the label."
+     "type": "'last' | 'average' | 'series' | 'none'",
+     "doc": "Which value to show next to the label ('series' / 'none' show the series name only)."
     },
     {
      "name": "exclude",
      "optional": true,
      "type": "string[]",
      "doc": "Series ids to skip."
+    },
+    {
+     "name": "markIndices",
+     "optional": true,
+     "type": "number[]",
+     "doc": "Only label series of these `ChartOptions.series` entries."
+    },
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'start' | 'end'",
+     "doc": "At the end (default) or the start of each line."
+    },
+    {
+     "name": "prefix",
+     "optional": true,
+     "type": "string",
+     "doc": "Text before the value."
+    },
+    {
+     "name": "showName",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Show the series name before the value. Default true."
+    },
+    {
+     "name": "fontSize",
+     "optional": true,
+     "type": "number",
+     "doc": ""
     },
     {
      "name": "format",
@@ -3166,6 +3568,7 @@
    "name": "BarProps",
    "package": "react",
    "file": "packages/react/src/children/components.tsx",
+   "extends": "MarkEvents, TrellisProps",
    "doc": "",
    "props": [
     {
@@ -3190,7 +3593,7 @@
      "name": "color",
      "optional": true,
      "type": "Facet",
-     "doc": "Data key to split series by color, or a static color `{ value: '#f00' }`."
+     "doc": "Data key to split series by color, or a static color `{ value: '#f00' }`. Default: one static color."
     },
     {
      "name": "colorOverride",
@@ -3214,13 +3617,19 @@
      "name": "paddingRatio",
      "optional": true,
      "type": "number",
-     "doc": ""
+     "doc": "Gap between categories as a share of each category's slot. Default 0.4."
+    },
+    {
+     "name": "paddingOuter",
+     "optional": true,
+     "type": "number",
+     "doc": "Space before the first and after the last category, as a share of a slot."
     },
     {
      "name": "groupedPadding",
      "optional": true,
      "type": "number",
-     "doc": ""
+     "doc": "Gap between dodged bars as a share of their slot. Default `paddingRatio`."
     },
     {
      "name": "hasSquareCorners",
@@ -3238,55 +3647,37 @@
      "name": "lineWidth",
      "optional": true,
      "type": "number",
-     "doc": ""
+     "doc": "Border width in px (drawn in the bar's color)."
     },
     {
      "name": "dimensionDataType",
      "optional": true,
      "type": "'time' | 'string'",
-     "doc": ""
+     "doc": "'time' formats numeric categories as dates."
+    },
+    {
+     "name": "order",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key that orders the segments of a stack."
+    },
+    {
+     "name": "metricAxis",
+     "optional": true,
+     "type": "string",
+     "doc": "Name of the `Axis` the values are drawn against (secondary metric axis)."
+    },
+    {
+     "name": "dualMetricAxis",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Draws the last series against a second metric axis on the right."
     },
     {
      "name": "showValues",
      "optional": true,
      "type": "boolean",
      "doc": "Shows the value next to each bar."
-    },
-    {
-     "name": "trellis",
-     "optional": true,
-     "type": "string",
-     "doc": "Data key that splits the chart into small multiples (one panel per value)."
-    },
-    {
-     "name": "trellisOrientation",
-     "optional": true,
-     "type": "'horizontal' | 'vertical'",
-     "doc": "Panels side by side ('horizontal') or stacked ('vertical'). Default 'horizontal'."
-    },
-    {
-     "name": "trellisColumns",
-     "optional": true,
-     "type": "number",
-     "doc": "Panels per row (overrides the orientation)."
-    },
-    {
-     "name": "trellisPadding",
-     "optional": true,
-     "type": "number",
-     "doc": "Gap between panels as a ratio of panel size. Default 0.04."
-    },
-    {
-     "name": "onClick",
-     "optional": true,
-     "type": "(datum: Datum) => void",
-     "doc": ""
-    },
-    {
-     "name": "onContextMenu",
-     "optional": true,
-     "type": "(event: MouseEvent, datum: Datum) => void",
-     "doc": ""
     },
     {
      "name": "children",
@@ -3300,6 +3691,7 @@
    "name": "LineProps",
    "package": "react",
    "file": "packages/react/src/children/components.tsx",
+   "extends": "MarkEvents, TrellisProps",
    "doc": "",
    "props": [
     {
@@ -3324,7 +3716,7 @@
      "name": "color",
      "optional": true,
      "type": "Facet",
-     "doc": ""
+     "doc": "Data key to split series by color, or a static color. Default: one static color."
     },
     {
      "name": "lineType",
@@ -3359,14 +3751,26 @@
     {
      "name": "staticPoint",
      "optional": true,
-     "type": "boolean",
-     "doc": ""
+     "type": "boolean | string",
+     "doc": "`true` marks every point; a data key marks the rows where it is truthy."
     },
     {
      "name": "pointSize",
      "optional": true,
      "type": "SymbolSize",
-     "doc": ""
+     "doc": "Marker size: a token ('S', 'M', …) or an area in px² (as in the legacy library, default 125)."
+    },
+    {
+     "name": "isSparkline",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Sparkline styling (thin line, no hover dot)."
+    },
+    {
+     "name": "isMethodLast",
+     "optional": true,
+     "type": "boolean",
+     "doc": "With `isSparkline`: a point on the last value."
     },
     {
      "name": "gradient",
@@ -3381,34 +3785,22 @@
      "doc": "Field marking rows drawn with the alternate (dotted) pattern."
     },
     {
-     "name": "trellis",
+     "name": "alternateSegmentLineType",
+     "optional": true,
+     "type": "LineType",
+     "doc": "Dash pattern of the alternate segments. Default 'dotted'."
+    },
+    {
+     "name": "metricAxis",
      "optional": true,
      "type": "string",
-     "doc": "Data key that splits the chart into small multiples (one panel per value)."
+     "doc": "Name of the `Axis` the values are drawn against (secondary metric axis)."
     },
     {
-     "name": "trellisOrientation",
+     "name": "dualMetricAxis",
      "optional": true,
-     "type": "'horizontal' | 'vertical'",
-     "doc": "Panels side by side ('horizontal') or stacked ('vertical'). Default 'horizontal'."
-    },
-    {
-     "name": "trellisColumns",
-     "optional": true,
-     "type": "number",
-     "doc": "Panels per row (overrides the orientation)."
-    },
-    {
-     "name": "trellisPadding",
-     "optional": true,
-     "type": "number",
-     "doc": "Gap between panels as a ratio of panel size. Default 0.04."
-    },
-    {
-     "name": "onClick",
-     "optional": true,
-     "type": "(datum: Datum) => void",
-     "doc": ""
+     "type": "boolean",
+     "doc": "Draws the last series against a second metric axis on the right."
     },
     {
      "name": "children",
@@ -3422,32 +3814,9 @@
    "name": "AreaProps",
    "package": "react",
    "file": "packages/react/src/children/components.tsx",
+   "extends": "MarkEvents, TrellisProps",
    "doc": "",
    "props": [
-    {
-     "name": "trellis",
-     "optional": true,
-     "type": "string",
-     "doc": "Data key that splits the chart into small multiples (one panel per value)."
-    },
-    {
-     "name": "trellisOrientation",
-     "optional": true,
-     "type": "'horizontal' | 'vertical'",
-     "doc": "Panels side by side ('horizontal') or stacked ('vertical'). Default 'horizontal'."
-    },
-    {
-     "name": "trellisColumns",
-     "optional": true,
-     "type": "number",
-     "doc": "Panels per row (overrides the orientation)."
-    },
-    {
-     "name": "trellisPadding",
-     "optional": true,
-     "type": "number",
-     "doc": "Gap between panels as a ratio of panel size. Default 0.04."
-    },
     {
      "name": "name",
      "optional": true,
@@ -3514,32 +3883,9 @@
    "name": "ScatterProps",
    "package": "react",
    "file": "packages/react/src/children/components.tsx",
+   "extends": "MarkEvents, TrellisProps",
    "doc": "",
    "props": [
-    {
-     "name": "trellis",
-     "optional": true,
-     "type": "string",
-     "doc": "Data key that splits the chart into small multiples (one panel per value)."
-    },
-    {
-     "name": "trellisOrientation",
-     "optional": true,
-     "type": "'horizontal' | 'vertical'",
-     "doc": "Panels side by side ('horizontal') or stacked ('vertical'). Default 'horizontal'."
-    },
-    {
-     "name": "trellisColumns",
-     "optional": true,
-     "type": "number",
-     "doc": "Panels per row (overrides the orientation)."
-    },
-    {
-     "name": "trellisPadding",
-     "optional": true,
-     "type": "number",
-     "doc": "Gap between panels as a ratio of panel size. Default 0.04."
-    },
     {
      "name": "name",
      "optional": true,
@@ -3601,10 +3947,10 @@
      "doc": ""
     },
     {
-     "name": "onClick",
+     "name": "stroke",
      "optional": true,
-     "type": "(datum: Datum) => void",
-     "doc": ""
+     "type": "string",
+     "doc": "Outline color of the points."
     },
     {
      "name": "children",
@@ -3618,6 +3964,7 @@
    "name": "DonutProps",
    "package": "react",
    "file": "packages/react/src/children/components.tsx",
+   "extends": "MarkEvents",
    "doc": "",
    "props": [
     {
@@ -3669,15 +4016,73 @@
      "doc": ""
     },
     {
-     "name": "onClick",
-     "optional": true,
-     "type": "(datum: Datum) => void",
-     "doc": ""
-    },
-    {
      "name": "children",
      "optional": true,
      "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AxisLabel",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "An explicit tick: its value, optionally with its own text, alignment and weight.",
+   "props": [
+    {
+     "name": "value",
+     "optional": false,
+     "type": "string | number",
+     "doc": ""
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "align",
+     "optional": true,
+     "type": "'start' | 'center' | 'end'",
+     "doc": ""
+    },
+    {
+     "name": "fontWeight",
+     "optional": true,
+     "type": "'normal' | 'bold' | number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AxisSubLabel",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "A second label line under the tick with the same value.",
+   "props": [
+    {
+     "name": "value",
+     "optional": false,
+     "type": "string | number",
+     "doc": ""
+    },
+    {
+     "name": "subLabel",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "align",
+     "optional": true,
+     "type": "'start' | 'center' | 'end'",
+     "doc": ""
+    },
+    {
+     "name": "fontWeight",
+     "optional": true,
+     "type": "'normal' | 'bold' | number",
      "doc": ""
     }
    ]
@@ -3704,7 +4109,7 @@
      "name": "title",
      "optional": true,
      "type": "string | string[]",
-     "doc": ""
+     "doc": "Axis title; an array draws one line per entry."
     },
     {
      "name": "grid",
@@ -3722,7 +4127,7 @@
      "name": "baseline",
      "optional": true,
      "type": "boolean",
-     "doc": ""
+     "doc": "Draws the axis line (off by default, as in the legacy library)."
     },
     {
      "name": "labelFormat",
@@ -3740,12 +4145,36 @@
      "name": "numberFormat",
      "optional": true,
      "type": "NumberFormat",
-     "doc": ""
+     "doc": "Default 'shortNumber'."
+    },
+    {
+     "name": "currencyCode",
+     "optional": true,
+     "type": "string",
+     "doc": "Currency for the currency number formats, e.g. 'EUR'."
+    },
+    {
+     "name": "currencyLocale",
+     "optional": true,
+     "type": "string",
+     "doc": "Locale used to place the currency symbol, e.g. 'de-DE'."
     },
     {
      "name": "labelOrientation",
      "optional": true,
      "type": "'horizontal' | 'vertical'",
+     "doc": ""
+    },
+    {
+     "name": "labelAlign",
+     "optional": true,
+     "type": "'start' | 'center' | 'end'",
+     "doc": ""
+    },
+    {
+     "name": "labelFontWeight",
+     "optional": true,
+     "type": "'normal' | 'bold' | number",
      "doc": ""
     },
     {
@@ -3758,6 +4187,18 @@
      "name": "truncateLabels",
      "optional": true,
      "type": "boolean",
+     "doc": "Truncates category labels to the width of their band."
+    },
+    {
+     "name": "labels",
+     "optional": true,
+     "type": "(AxisLabel | string | number)[]",
+     "doc": "Only these ticks, with optional text and styling."
+    },
+    {
+     "name": "subLabels",
+     "optional": true,
+     "type": "AxisSubLabel[]",
      "doc": ""
     },
     {
@@ -3770,13 +4211,37 @@
      "name": "tickCountLimit",
      "optional": true,
      "type": "number",
-     "doc": ""
+     "doc": "Upper limit on the number of ticks."
+    },
+    {
+     "name": "tickCountMinimum",
+     "optional": true,
+     "type": "number",
+     "doc": "Lower limit on the number of ticks."
+    },
+    {
+     "name": "tickMinStep",
+     "optional": true,
+     "type": "number",
+     "doc": "Smallest step between two ticks (numeric axes), e.g. 1 for whole numbers."
     },
     {
      "name": "hideDefaultLabels",
      "optional": true,
      "type": "boolean",
      "doc": ""
+    },
+    {
+     "name": "hasTooltip",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Shows the full text of a (truncated) label on hover."
+    },
+    {
+     "name": "onClick",
+     "optional": true,
+     "type": "(value: string | number, index: number) => void",
+     "doc": "Called when a tick label is clicked."
     },
     {
      "name": "zoom",
@@ -3852,7 +4317,7 @@
      "name": "urlKey",
      "optional": true,
      "type": "string",
-     "doc": "Data key holding an image URL per category."
+     "doc": "Data key holding an image URL per category. Default 'thumbnail'."
     },
     {
      "name": "dimension",
@@ -3914,9 +4379,9 @@
    "props": [
     {
      "name": "dimensionValue",
-     "optional": false,
+     "optional": true,
      "type": "unknown",
-     "doc": "Dimension value to annotate, or 'first' / 'last' / 'max' / 'min'."
+     "doc": "Dimension value to annotate, or 'first' / 'last' / 'max' / 'min'. When omitted, every static point of the parent line (`staticPoint`) is labelled."
     },
     {
      "name": "series",
@@ -3931,10 +4396,22 @@
      "doc": ""
     },
     {
+     "name": "textKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key shown as the label (default: the metric value)."
+    },
+    {
      "name": "anchor",
      "optional": true,
-     "type": "'top' | 'bottom' | 'left' | 'right'",
-     "doc": ""
+     "type": "Anchor | Anchor[]",
+     "doc": "Side of the point; a list is tried in order."
+    },
+    {
+     "name": "matchLineColor",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Badge in the line's color (default) or plain text."
     },
     {
      "name": "color",
@@ -3958,15 +4435,21 @@
    "props": [
     {
      "name": "textKey",
-     "optional": false,
+     "optional": true,
      "type": "string",
-     "doc": "Data key shown as the label."
+     "doc": "Data key shown as the label. Default: the metric."
+    },
+    {
+     "name": "anchor",
+     "optional": true,
+     "type": "Anchor | Anchor[]",
+     "doc": "Side of the point; a list is tried in order until a label fits."
     },
     {
      "name": "position",
      "optional": true,
-     "type": "'right' | 'left' | 'top' | 'bottom'",
-     "doc": ""
+     "type": "Anchor",
+     "doc": "Alias of `anchor`."
     }
    ]
   },
@@ -3979,8 +4462,8 @@
     {
      "name": "groupBy",
      "optional": true,
-     "type": "string",
-     "doc": "Data key that splits points into separate paths."
+     "type": "string | string[]",
+     "doc": "Data key(s) that split points into separate paths."
     },
     {
      "name": "order",
@@ -3992,7 +4475,7 @@
      "name": "color",
      "optional": true,
      "type": "string",
-     "doc": ""
+     "doc": "Default 'gray-500'."
     },
     {
      "name": "pathWidth",
@@ -4004,13 +4487,135 @@
      "name": "opacity",
      "optional": true,
      "type": "number",
-     "doc": ""
+     "doc": "Default 0.5."
     },
     {
      "name": "lineType",
      "optional": true,
      "type": "LineType",
      "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "AnnotationProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "A value badge on each bar of the parent `Bar`.",
+   "props": [
+    {
+     "name": "textKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key shown in the badge. Default: the metric."
+    },
+    {
+     "name": "style",
+     "optional": true,
+     "type": "{ width?: number }",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "BarDirectLabelProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "Value labels on the bars of the parent `Bar`.",
+   "props": [
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'start' | 'middle' | 'end' | 'end-outside'",
+     "doc": ""
+    },
+    {
+     "name": "dataKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key shown instead of the metric."
+    },
+    {
+     "name": "format",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    },
+    {
+     "name": "overflow",
+     "optional": true,
+     "type": "'hide' | 'spill'",
+     "doc": "Labels that do not fit: hidden (default) or drawn past the bar."
+    }
+   ]
+  },
+  {
+   "name": "LineDirectLabelProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "Labels at the end (or start) of each line of the parent `Line`.",
+   "props": [
+    {
+     "name": "value",
+     "optional": true,
+     "type": "'last' | 'average' | 'series'",
+     "doc": "'last' / 'average' value, or the series name. Default 'last'."
+    },
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'start' | 'end'",
+     "doc": ""
+    },
+    {
+     "name": "format",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    },
+    {
+     "name": "prefix",
+     "optional": true,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "excludeSeries",
+     "optional": true,
+     "type": "string[]",
+     "doc": ""
+    },
+    {
+     "name": "fontSize",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "LineForecastProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "A forecast on the parent `Line`: another metric drawn dashed from `start` on, with a boundary rule.",
+   "props": [
+    {
+     "name": "metric",
+     "optional": false,
+     "type": "string",
+     "doc": ""
+    },
+    {
+     "name": "start",
+     "optional": false,
+     "type": "number | string",
+     "doc": "Dimension value where the forecast starts."
+    },
+    {
+     "name": "label",
+     "optional": true,
+     "type": "string",
+     "doc": "Text next to the boundary. Default 'Forecast'."
     }
    ]
   },
@@ -4088,7 +4693,25 @@
      "name": "labelPosition",
      "optional": true,
      "type": "'start' | 'end' | 'axis'",
+     "doc": "'axis' (default) draws the label outside the plot."
+    },
+    {
+     "name": "labelColor",
+     "optional": true,
+     "type": "string",
+     "doc": "Default: the text color."
+    },
+    {
+     "name": "labelFontWeight",
+     "optional": true,
+     "type": "'normal' | 'bold' | number",
      "doc": ""
+    },
+    {
+     "name": "position",
+     "optional": true,
+     "type": "'before' | 'center' | 'after'",
+     "doc": "On category axes: before, on (default) or after the category."
     },
     {
      "name": "layer",
@@ -4137,8 +4760,8 @@
     {
      "name": "legendLabels",
      "optional": true,
-     "type": "{ seriesName: string; label: string }[]",
-     "doc": ""
+     "type": "{ seriesName: string; label: string; maxLength?: number }[]",
+     "doc": "`maxLength` truncates the label (characters)."
     },
     {
      "name": "hiddenEntries",
@@ -4149,11 +4772,41 @@
     {
      "name": "descriptions",
      "optional": true,
-     "type": "{ seriesName: string; description: string }[]",
+     "type": "{ seriesName: string; description: string; title?: string }[]",
      "doc": ""
     },
     {
+     "name": "defaultHiddenSeries",
+     "optional": true,
+     "type": "string[]",
+     "doc": "Series hidden at first (uncontrolled)."
+    },
+    {
+     "name": "labelLimit",
+     "optional": true,
+     "type": "number",
+     "doc": "Max label width in px."
+    },
+    {
+     "name": "titleLimit",
+     "optional": true,
+     "type": "number",
+     "doc": "Max title width in px."
+    },
+    {
      "name": "onClick",
+     "optional": true,
+     "type": "(seriesName: string) => void",
+     "doc": ""
+    },
+    {
+     "name": "onMouseOver",
+     "optional": true,
+     "type": "(seriesName: string) => void",
+     "doc": ""
+    },
+    {
+     "name": "onMouseOut",
      "optional": true,
      "type": "(seriesName: string) => void",
      "doc": ""
@@ -4175,14 +4828,14 @@
     {
      "name": "highlightBy",
      "optional": true,
-     "type": "'item' | 'series' | 'dimension'",
-     "doc": ""
+     "type": "'item' | 'series' | 'dimension' | string[]",
+     "doc": "'dimension' groups every series at the hovered value; a key list behaves like 'item'."
     },
     {
      "name": "excludeDataKeys",
      "optional": true,
      "type": "string[]",
-     "doc": ""
+     "doc": "Rows where any of these keys is truthy get no tooltip and no hover highlight."
     }
    ]
   },
@@ -4202,13 +4855,61 @@
      "name": "width",
      "optional": true,
      "type": "number | 'auto'",
+     "doc": "Default 250."
+    },
+    {
+     "name": "minWidth",
+     "optional": true,
+     "type": "number",
      "doc": ""
+    },
+    {
+     "name": "maxWidth",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "height",
+     "optional": true,
+     "type": "number | 'auto'",
+     "doc": ""
+    },
+    {
+     "name": "minHeight",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "maxHeight",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
+     "name": "containerPadding",
+     "optional": true,
+     "type": "number",
+     "doc": "Space kept between the popover and the chart's edges. Default 12."
+    },
+    {
+     "name": "contentMargin",
+     "optional": true,
+     "type": "number",
+     "doc": "Inner padding. Default 12."
     },
     {
      "name": "rightClick",
      "optional": true,
      "type": "boolean",
      "doc": ""
+    },
+    {
+     "name": "UNSAFE_highlightBy",
+     "optional": true,
+     "type": "'item' | 'series' | 'dimension'",
+     "doc": "What stays highlighted while the popover is open. Default 'item'."
     },
     {
      "name": "onOpenChange",
@@ -4234,6 +4935,12 @@
      "name": "position",
      "optional": true,
      "type": "'start' | 'middle' | 'end'",
+     "doc": "Default 'middle'."
+    },
+    {
+     "name": "fontWeight",
+     "optional": true,
+     "type": "'normal' | 'bold' | number",
      "doc": ""
     }
    ]
@@ -4287,6 +4994,18 @@
      "optional": true,
      "type": "NumberFormat",
      "doc": ""
+    },
+    {
+     "name": "labelKey",
+     "optional": true,
+     "type": "string",
+     "doc": "Data key shown as the label. Default: the color key."
+    },
+    {
+     "name": "percentFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": "Number format of the percent. Default '.0%'."
     }
    ]
   },
@@ -4341,6 +5060,12 @@
      "doc": ""
     },
     {
+     "name": "numberType",
+     "optional": true,
+     "type": "'linear' | 'percentage'",
+     "doc": "'percentage' formats the value as a percent."
+    },
+    {
      "name": "orientation",
      "optional": true,
      "type": "'vertical' | 'horizontal'",
@@ -4388,13 +5113,13 @@
      "name": "lineWidth",
      "optional": true,
      "type": "number",
-     "doc": ""
+     "doc": "Default 2."
     },
     {
      "name": "opacity",
      "optional": true,
      "type": "number",
-     "doc": ""
+     "doc": "Default 1."
     },
     {
      "name": "dimensionExtent",
@@ -4406,6 +5131,50 @@
      "name": "displayOnHover",
      "optional": true,
      "type": "boolean",
+     "doc": "Only drawn while its series is hovered."
+    },
+    {
+     "name": "excludeDataKeys",
+     "optional": true,
+     "type": "string[]",
+     "doc": "Rows where any of these keys is truthy are left out of the fit."
+    },
+    {
+     "name": "hidePartialWindows",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Moving averages: skip points without a full window. Default false."
+    },
+    {
+     "name": "children",
+     "optional": true,
+     "type": "ReactNode",
+     "doc": ""
+    }
+   ]
+  },
+  {
+   "name": "TrendlineAnnotationProps",
+   "package": "react",
+   "file": "packages/react/src/children/components.tsx",
+   "doc": "A label at the end of the parent `Trendline`.",
+   "props": [
+    {
+     "name": "badge",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Draws the label on a badge in the trendline's color."
+    },
+    {
+     "name": "numberFormat",
+     "optional": true,
+     "type": "NumberFormat",
+     "doc": ""
+    },
+    {
+     "name": "prefix",
+     "optional": true,
+     "type": "string",
      "doc": ""
     }
    ]
@@ -4441,6 +5210,18 @@
      "doc": ""
     },
     {
+     "name": "lineWidth",
+     "optional": true,
+     "type": "number",
+     "doc": "Width of the boundary lines. Default 1."
+    },
+    {
+     "name": "lineOpacity",
+     "optional": true,
+     "type": "number",
+     "doc": ""
+    },
+    {
      "name": "rangeOpacity",
      "optional": true,
      "type": "number",
@@ -4451,6 +5232,12 @@
      "optional": true,
      "type": "boolean",
      "doc": ""
+    },
+    {
+     "name": "scaleAxisToFit",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Widen the value axis to fit the range. Default false."
     }
    ]
   },
@@ -4487,7 +5274,7 @@
     {
      "name": "thresholds",
      "optional": true,
-     "type": "{ thresholdMax: number; fill: string }[]",
+     "type": "{ thresholdMin?: number; thresholdMax?: number; fill?: string }[]",
      "doc": ""
     },
     {
@@ -4501,6 +5288,48 @@
      "optional": true,
      "type": "NumberFormat",
      "doc": ""
+    },
+    {
+     "name": "scaleType",
+     "optional": true,
+     "type": "'normal' | 'fixed' | 'flexible'",
+     "doc": "'fixed' uses `maxScaleValue`; 'flexible' grows past it to fit the data. Default 'normal'."
+    },
+    {
+     "name": "showTarget",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "showTargetValue",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "thresholdBarColor",
+     "optional": true,
+     "type": "boolean",
+     "doc": ""
+    },
+    {
+     "name": "direction",
+     "optional": true,
+     "type": "'column' | 'row'",
+     "doc": ""
+    },
+    {
+     "name": "labelPosition",
+     "optional": true,
+     "type": "'top' | 'side'",
+     "doc": "Default 'top'."
+    },
+    {
+     "name": "track",
+     "optional": true,
+     "type": "boolean",
+     "doc": "Gray track behind the bar. Default false."
     }
    ]
   },
@@ -4526,6 +5355,12 @@
      "name": "label",
      "optional": true,
      "type": "string",
+     "doc": "Field holding each region's label. Default 'label'."
+    },
+    {
+     "name": "orientation",
+     "optional": true,
+     "type": "'0deg' | '90deg' | '180deg' | '270deg'",
      "doc": ""
     }
    ]

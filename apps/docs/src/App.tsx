@@ -3,11 +3,12 @@ import { ChartsEngineProvider, setReducedMotionPolicy, systemPrefersReducedMotio
 import { RenderEngine } from '@rsc-gl/core';
 import { SiteContext, type SiteSettings } from './components/docs';
 import { ROUTES, type RouteDef } from './routes';
+import { stripBase, withBase } from './base';
 
 function usePath() {
-  const [path, setPath] = useState(() => location.pathname);
+  const [path, setPath] = useState(() => stripBase(location.pathname));
   useEffect(() => {
-    const on = () => setPath(location.pathname);
+    const on = () => setPath(stripBase(location.pathname));
     window.addEventListener('popstate', on);
     return () => window.removeEventListener('popstate', on);
   }, []);
@@ -15,7 +16,7 @@ function usePath() {
 }
 
 export function navigate(to: string) {
-  history.pushState(null, '', to);
+  history.pushState(null, '', withBase(to));
   window.dispatchEvent(new PopStateEvent('popstate'));
   window.scrollTo({ top: 0 });
 }
@@ -27,9 +28,9 @@ function useLinkInterception() {
       const a = (e.target as HTMLElement).closest('a');
       if (!a || e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank') return;
       const href = a.getAttribute('href');
-      if (!href || !href.startsWith('/')) return;
+      if (!href || !href.startsWith('/') || href.startsWith('//')) return;
       e.preventDefault();
-      navigate(href);
+      navigate(stripBase(href));
     };
     document.addEventListener('click', on);
     return () => document.removeEventListener('click', on);
@@ -184,7 +185,7 @@ export function App() {
               <div className="nav-group" key={group}>
                 <div className="nav-title">{group}</div>
                 {routes.map((r) => (
-                  <a key={r.path} className="nav-link" href={r.path} aria-current={r.path === route.path ? 'page' : undefined}>
+                  <a key={r.path} className="nav-link" href={withBase(r.path)} aria-current={r.path === route.path ? 'page' : undefined}>
                     {r.title}
                     {r.badge && (
                       <span className="badge" data-kind={r.badge.toLowerCase()}>

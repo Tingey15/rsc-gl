@@ -1,3 +1,4 @@
+import { withBase } from '../base';
 import HeroCharts from '../demos/misc/HeroCharts';
 import LegacyParity from '../demos/misc/LegacyParity';
 import LegacyParitySrc from '../demos/misc/LegacyParity.tsx?raw';
@@ -42,7 +43,7 @@ export function OverviewPage() {
       <H2>Chart types</H2>
       <div className="grid-cards">
         {CARDS.map((c) => (
-          <a key={c.href} className="card" href={c.href}>
+          <a key={c.href} className="card" href={withBase(c.href)}>
             <h4>{c.title}</h4>
             <p>{c.text}</p>
           </a>

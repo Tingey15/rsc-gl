@@ -1,3 +1,4 @@
+import { withBase } from '../base';
 import { useEffect, useState, type ReactNode } from 'react';
 import { RenderEngine } from '@rsc-gl/core';
 import { Callout, H2, H3, Page, PropsTable } from '../components/docs';
@@ -186,7 +187,7 @@ export function WhyGpuPage() {
         ]}
       />
       <Callout>
-        See it side by side on the <a href="/benchmark">benchmark page</a>: the same data rendered by the legacy SVG/Canvas library and by this engine, up to
+        See it side by side on the <a href={withBase('/benchmark')}>benchmark page</a>: the same data rendered by the legacy SVG/Canvas library and by this engine, up to
         one million points.
       </Callout>
 
@@ -198,7 +199,7 @@ export function WhyGpuPage() {
         </li>
         <li>
           <b>Compute shaders.</b> Data reduction (min-max decimation of millions of samples, binning) runs on the GPU and returns only what is drawn. See{' '}
-          <a href="/features/gpu-compute">GPU compute</a>.
+          <a href={withBase('/features/gpu-compute')}>GPU compute</a>.
         </li>
         <li>
           <b>One device, many canvases.</b> A single WebGPU device presents to every chart canvas on the page, with 4× MSAA per surface.
@@ -207,7 +208,7 @@ export function WhyGpuPage() {
           <b>Modern shading language.</b> WGSL with explicit layouts; storage buffers and render targets make GPU picking and offscreen work straightforward.
         </li>
         <li>
-          <b>Workers.</b> WebGPU and OffscreenCanvas let a whole chart render inside a Web Worker. See <a href="/features/worker-rendering">worker rendering</a>.
+          <b>Workers.</b> WebGPU and OffscreenCanvas let a whole chart render inside a Web Worker. See <a href={withBase('/features/worker-rendering')}>worker rendering</a>.
         </li>
       </ul>
 
@@ -300,7 +301,7 @@ new Chart(el, options, { series: [barSeries, lineSeries], engine: { backends: [w
       <H3>What if neither WebGPU nor WebGL2 is available?</H3>
       <p>
         The chart shows an explanatory message. For static contexts (email, PDFs, crawlers) render on the server with <code>renderToSVGString</code> and
-        hydrate on the client; see <a href="/features/hydration">SSR &amp; hydration</a>.
+        hydrate on the client; see <a href={withBase('/features/hydration')}>SSR &amp; hydration</a>.
       </p>
       <H3>How many charts can a page hold?</H3>
       <p>As many as you like: they share one device and one frame loop, and idle charts cost nothing per frame.</p>
